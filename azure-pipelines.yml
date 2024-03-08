@@ -88,7 +88,7 @@ jobs:
         $targetPath                 = '.\'
         $gitFullBranch              = "$(Build.SourceBranch)"
         $gitBranch                  = $gitFullBranch.substring($gitFullBranch.lastindexof('heads/') + 6)
-        $restUri                    = "https://vsrm.dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
+        $restUri                    = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
         $ispwContainerCreationRule  = ''
         $ispwConfigFilePath         = '"$(codePipelineConfigYml)"'
         $currentCommit              = "$(Build.SourceVersion)"
@@ -354,7 +354,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $restUri = "https://vsrm.dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
+        $restUri = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
                     
         $headers = @{}
         #$headers.Add("Authorization", "Bearer $env:SYSTEM_ACCESSTOKEN")
