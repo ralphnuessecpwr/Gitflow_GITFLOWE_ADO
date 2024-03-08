@@ -111,6 +111,7 @@ jobs:
           }
           else{
               
+              Write-Host
               Write-Host "Query failed. Response"
               Write-Host $response
 
@@ -136,27 +137,20 @@ jobs:
 
         Write-Host 'Will synchronize Commits starting from' $previousCommit 'and ending with' $currentCommit
         Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $ispwContainerCreationRule
-        
+        Write-Host
         Write-Host "Parameters"
-
-        Write-Host "Target Path"
-        Write-Host $targetPath
-        Write-Host "Config File"
-        Write-Host $ispwConfigFilePath
-        Write-Host "Stream"
-        Write-Host "$(codePipelineStream)"
-        Write-Host "App"
-        Write-Host "$(codePipelineApplication)"
-        Write-Host "Level"
-        Write-Host "$(codePipelineLevel)"
-        Write-Host "Git Repo"
-        Write-Host "$(Build.Repository.Uri).git"
-        Write-Host "Git Branch"
-        Write-Host $gitBranch
-        Write-Host "Git From"
-        Write-Host $previousCommit
-        Write-Host "Git To"
-        Write-Host $currentCommit
+        Write-Host
+        Write-Host "Target Path       : " $targetPath
+        Write-Host "Config File       : " $ispwConfigFilePath
+        Write-Host "Stream            : $(codePipelineStream)"
+        Write-Host "App               : $(codePipelineApplication)"
+        Write-Host "SubApp            : $(codePipelineSubApplication)"
+        Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
+        Write-Host "Level             : $(codePipelineLevel)"
+        Write-Host "Git Repo          : $(Build.Repository.Uri).git"
+        Write-Host "Git Branch        : " $gitBranch
+        Write-Host "Git From          : " $previousCommit
+        Write-Host "Git To            : " $currentCommit
 
         cmd.exe /c $(cliPath)\IspwCLI.bat `
           -operation syncGitToIspw `

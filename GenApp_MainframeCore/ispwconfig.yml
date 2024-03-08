@@ -7,7 +7,7 @@ ispwApplication:
   application: GITFLOWE
   subAppl: GITFLOWE
   assignmentPrefix: GFLE
-  sandbox: N
+  sandbox: Y
   pathMappings:
   - path: "**/Sources/Progs"
     types:
