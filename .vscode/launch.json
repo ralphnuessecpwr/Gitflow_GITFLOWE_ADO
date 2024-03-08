@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "workbench-batch",
+            "request": "launch",
+            "name": "CWXTCOB_2",
+            "hciConnectionName": "cwcc",
+            "jclDatasetMember": "SALESSUP.#0000361.UNIT.JOB(CWXTJCLC)",
+            "jobName": "HDDRXM0X",
+            "steps": [
+                {
+                    "step": "*",
+                    "program": "CWXTCOB",
+                    "DB2": false,
+                    "IMS": false
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,342 @@
+pr: none
+
+trigger:
+- development
+#- main
+- feature/*
+- release/*
+
+pool:
+  name: 'Manoj'
+
+variables:
+- group: 'gitflow_GFLD'
+- name: upperBranchName
+  value: $[upper(variables['Build.SourceBranchName'])]
+- name: branchMapping
+  ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
+    value: 'feature/** => FEAT,custom,PUSH TO FEATURE/$(upperBranchName)'
+  ${{ elseif contains(variables['Build.SourceBranch'], 'release')}}:
+    value: 'release/** => RLSE,per-branch'
+- name: containerDescription
+  ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
+    value: 'PUSH TO FEATURE/$(upperBranchName)'
+  ${{ else }}:
+    value: "PUSH TO RLSE/$(upperBranchName)"
+- name: codePipelineLevel
+  ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
+    value: 'FEAT'
+  ${{ if contains(variables['Build.SourceBranch'], 'release')}}:
+    value: 'RLSE'
+#  ${{ if contains(variables['Build.SourceBranch'], 'main')}}:
+#    value: 'PREP'
+
+jobs:
+- job: synchMainframeCode
+  #condition: eq(variables.codePipelineLevel, 'FEAT')
+  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE'))
+  displayName: Synch Mainframe Code
+  steps:
+  - checkout: self
+    clean: true
+    fetchTags: true
+  # - task: azure-deveops-ispw-operation-task@2
+  #   name: synchMainframeCode
+  #   displayName: Synchronize to Mainframe
+  #   inputs:
+  #     connectionId: $(hostConnection)
+  #     operationType: 'ISPWSYNC'
+  #     topazWorkbenchCLIHome: $(cliPath)
+  #     runtimeConfiguration: $(runtimeConfig)
+  #     ispwusername: $(hostUser)
+  #     ispwpassword: $(hostPassword)
+  #     stream: $(codePipelineStream)
+  #     application: $(codePipelineApplication)
+  #     subApplication: $(codePipelineSubApplication)
+  #     yamlMappingFile: $(codePipelineConfigYml)
+  #     encryptionProtocol: 'Auto'
+  #     codePage: '1047'
+  #     timeout: '0'
+  #     branchMapping: $(branchMapping)
+  - task: PowerShell@2
+    displayName: Synch Git to ISPW
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      targetType: 'inline'
+      script: |
+        [string]$gitLocalPath               = '.\'
+        [string]$targetPath                 = '.\'
+        [string]$gitFullBranch              = "$(Build.SourceBranch)"
+        [string]$gitBranch                  = $gitFullBranch.substring($gitFullBranch.lastindexof('heads/') + 6)
+        #[string]$restUri                    = "$(System.TeamFoundationCollectionUri)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&api-version=5.1"
+        [string]$restUri                    = "$(System.TeamFoundationCollectionUri)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
+        #[string]$ispwContainerCreationRule  = '"custom"'
+        [string]$ispwContainerCreationRule  = ''
+        #[string]$ispwConfigFilePath         = '"$(codePipelineConfigYml)"'
+        [string]$ispwConfigFilePath         = ''
+        
+        Write-Host "gitBranch"
+        Write-Host $gitBranch
+        
+        if ($gitBranch.ToLower().Contains("feature"))
+        {
+        	$ispwConfigFilePath         = '"$(codePipelineConfigYml)"'
+        	$ispwContainerCreationRule  = '"custom"'
+        }
+        
+        $currentCommit          = ''
+        $previousCommit         = ''
+
+        Write-Host "Querying for Execution Commits (current Run and previous Run)"
+        Write-Host "Using URI"
+        Write-Host $restUri
+
+        $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
+
+        if($response.StatusCode -eq 200) {
+
+            $content        = ConvertFrom-Json $response.Content
+            $currentCommit  = "$(Build.SourceVersion)"
+            $previousCommit = $content.value[1].sourceVersion
+
+        }
+        else{
+            
+            Write-Host "Query failed. Response"
+            Write-Host $response
+
+            Exit 1
+
+        }
+
+        # MKS
+        if ($previousCommit -eq '' -or $previousCommit -eq $null)
+        {
+           $previousCommit = '-1'
+        }
+        
+        if ($gitBranch.ToLower().Contains("release"))
+        {
+        	$ispwConfigFilePath         = './GenApp_MainframeCore/ispwconfig-nosb.yml'
+        	$ispwContainerCreationRule  = '"per-branch"'
+        	
+        	# MKS - logic for properly getting commit info for release branch
+           
+            #$currentTag = (git describe --tags).Split("`n")[2].Trim()
+            #$previousTag = (git describe --abbrev=0 --tags $currentTag'~').Split("`n")[2].Trim()
+            #$fromCommit = (git rev-list -1 $previousTag).Split("`n")[2].Trim()
+            #$toCommit = (git rev-parse --verify HEAD).Split("`n")[2].Trim()
+            
+            $currentTag = (git tag --sort=-refname).Split("`n")[0].Trim()
+            $previousTag = (git tag --sort=-refname).Split("`n")[1].Trim()
+            
+            $fromCommit = (git rev-list -1 $previousTag)
+            $toCommit = (git rev-parse --verify HEAD)
+            
+            $currentCommit  = $toCommit
+            $previousCommit = $fromCommit
+        }        
+        # MKS - end
+        
+        Write-Host 'Will synchronize Commits starting from' $previousCommit 'and ending with' $currentCommit
+        Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $ispwContainerCreationRule
+        
+        Write-Host "Parameters"
+
+        Write-Host "Target Path"
+        Write-Host $targetPath
+        Write-Host "Config File"
+        Write-Host $ispwConfigFilePath
+        Write-Host "Stream"
+        Write-Host "$(codePipelineStream)"
+        Write-Host "App"
+        Write-Host "$(codePipelineApplication)"
+        Write-Host "Level"
+        Write-Host "$(codePipelineLevel)"
+        Write-Host "Git Repo"
+        Write-Host "$(Build.Repository.Uri).git"
+        Write-Host "Git Branch"
+        Write-Host $gitBranch
+        Write-Host "Git From"
+        Write-Host $previousCommit
+        Write-Host "Git To"
+        Write-Host $currentCommit
+
+        cmd.exe /c $(cliPath)\IspwCLI.bat `
+          -operation syncGitToIspw `
+          -host $(hostName) `
+          -port $(hostHciPort) `
+          -id $(hostUser) `
+          -pass $(hostPassword) `
+          -protocol None `
+          -code $(hostCodePage) `
+          -timeout 0 `
+          -targetFolder $targetPath `
+          -data $(cliWorkspace) `
+          -ispwServerConfig $(runtimeConfig) `
+          -ispwConfigPath $ispwConfigFilePath `
+          -ispwServerStream $(codePipelineStream) `
+          -ispwServerApp $(codePipelineApplication) `
+          -ispwCheckoutLevel $(codePipelineLevel) `
+          -ispwContainerCreation $ispwContainerCreationRule `
+          -ispwContainerDescription "$(containerDescription)" `
+          -gitRepoUrl $(Build.Repository.Uri).git `
+          -gitBranch $gitBranch `
+          -gitFromHash $previousCommit `
+          -gitCommit $currentCommit `
+          -gitLocalPath $gitLocalPath     
+
+- job: checkParameters
+  displayName: Check for Build Parameters
+  dependsOn: synchMainframeCode
+  #condition: eq(variables.codePipelineLevel, 'FEAT')
+  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE'))
+  steps:
+  - checkout: none
+  - task: PowerShell@2
+    name: buildParameters
+    displayName: Check Results
+    inputs:
+      targetType: 'inline'
+      script: |
+        if(-not (Test-Path -Path .\automaticBuildParams.txt -PathType Leaf)) {
+
+          Write-Host "No Mainframe Build parameters were found. Likely, no MF components were modified. The build will continue and just execute a code scan."
+          Write-Host "##vso[task.complete result=Failed;]DONE"
+
+        }
+        else {
+
+          Write-Host "Mainframe Build parameters were found. Will continue with full Mainframe Build process."
+        
+          [string]$fileContent  = ''          
+          $fileContent          = Get-Content .\automaticBuildParams.txt
+          $content              = ''
+
+          foreach ($line in $fileContent) { $content = $content + "`n" + $line }
+          
+          $json                 = ConvertFrom-JSON $content
+
+          $taskParm             = ""
+
+          foreach($taskId in $json.taskIds) {
+              $taskParm = $taskParm + $taskId + ","
+          }
+
+          $taskParm = $taskParm.Substring(0,$taskParm.Length - 1)
+
+          $taskLevel    = $json.taskLevel
+          $assignmentId = $json.containerId
+
+          Write-Host "Identified" 
+          Write-Host "  Tasks"
+          Write-Host $taskParm
+          Write-Host "  Assignment"
+          Write-Host $assignmentId
+          Write-Host "  Level"
+          Write-Host $taskLevel
+
+          Write-Host "##vso[task.setvariable variable=taskIds;isoutput=true]$taskParm"
+          Write-Host "##vso[task.setvariable variable=taskLevel;isoutput=true]$taskLevel"
+          Write-Host "##vso[task.setvariable variable=assignmentId;isoutput=true]$assignmentId"
+        }
+
+- job: buildMainframeCode
+  displayName: Build and Deploy Mainframe Code
+  dependsOn: checkParameters
+  #condition: and(succeeded('checkParameters'), eq(variables.codePipelineLevel, 'FEAT'))
+  condition: and(succeeded('checkParameters'), or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE')))
+  variables:
+    taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
+    taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+  steps: 
+  - checkout: none
+  - task: azure-deveops-ispw-operation-task@2
+    displayName: Build Code
+    inputs:
+      connectionId: $(hostConnection)
+      operationType: 'CES'
+      cesUrl: $(cesUrl)
+      cesSecretToken: '$(cesToken)'
+      action: 'BuildAssignment'
+      request: |
+        runtimeConfiguration=$(runtimeConfig)
+        taskIds=$(taskIds)
+        assignmentId=$(assignmentId)
+        application=$(codePipelineApplication)
+        level=$(taskLevel)
+      skipWaitingForSetCompletion: false
+      showResponseBodyInConsole: true  
+
+- job: runTests
+  displayName: Execute Tests
+  dependsOn: buildMainframeCode
+  condition: and(succeeded('buildMainframeCode'), eq(variables.codePipelineLevel, 'FEAT'))
+  steps:
+  - checkout: none  
+  - task: CmdLine@2
+    displayName: Run Unit Tests
+    inputs:
+      script: |
+        echo Executing Unit Tests using Parameters
+        echo Environment      : 5c519facfba8720a90ccc645
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwc2.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/testUnitFolder
+        
+        $(cliPath)\TotalTestFTCLI.bat ^
+            -e 5c519facfba8720a90ccc645 ^
+            -u $(hostUser) ^
+            -p $(hostPassword) ^
+            -s http://cwc2.bmc.com:2020/totaltestapi/ ^
+            -cesu $(hostUser) ^
+            -cesp $(hostPassword) ^
+            -f $(testRootFolder)/$(testUnitFolder) ^
+            -pnf changedPrograms.json ^
+            -ctxvars '"load_lib=SALESSUP.#0000307.FEAT.LOAD"' ^
+            -R ^
+            -G ^
+            -v 6 ^
+            -l jenkins ^
+            -loglevel INFO ^
+            -data $(cliWorkspace)
+
+  # - task: BMCTTAutoRun@1
+  #   displayName: Run Unit Tests
+  #   inputs:
+  #     HCIConnection: $(hostConnection)
+  #     UserID: $(hostUser)
+  #     Password: $(hostPassword)
+  #     TestLocationPath: '$(testRootFolder)/$(testUnitFolder)'
+  #     CLIInstallationPath: $(cliPath)
+  #     Configuration: 'LocalTTTConf'
+  #     LocalTTTConfiguration: '$(testRootFolder)/$(testConfigurationFolder)'
+
+- job: sonar
+  displayName: Run Sonar Scan
+  dependsOn: runTests
+  condition: always()
+  steps:
+  - checkout: none  
+  - task: SonarQubePrepare@5
+    inputs:
+      SonarQube: 'Sonar'
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: 'GITFLOW_GFLD_Azure'
+      cliProjectName: 'GITFLOW_GFLD_Azure'
+      cliSources: './GenApp_MainframeCore/Sources'
+      extraProperties: |
+        sonar.branch.name=$(Build.SourceBranchName)
+        sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
+        Dsonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
+        sonar.cobol.copy.suffixes=cpy
+        sonar.ws.timeout=480
+        sonar.sourceEncoding=UTF-8
+  - task: SonarQubeAnalyze@5
+  - task: SonarQubePublish@5
+    inputs:
+      pollingTimeoutSec: '300'  
