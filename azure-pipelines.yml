@@ -50,7 +50,7 @@ jobs:
       targetType: 'inline'
       script: |
         $ispwConfigFilePath = '"$(codePipelineConfigYml)"'
-        out-file -FilePath $ispwConfigFilePath -InputObject (Get-Content -Raw ispwconfig.yml).Replace('sandbox: Y', 'sandbox: N')
+        out-file -FilePath $ispwConfigFilePath -InputObject (Get-Content -Raw ispwconfig.yml).Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
   # Synchronize code for feature branch, using extension
   #- task: azure-deveops-ispw-operation-task@2
   #  name: synchMainframeCode2Feat
