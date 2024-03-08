@@ -46,6 +46,7 @@ jobs:
   - task: PowerShell@2
     condition: eq(variables.codePipelineLevel, 'RLSE')
     name: deactivateSandboxFlag
+    displayName: Deactivate Sandbox Flag
     inputs:
       targetType: 'inline'
       script: |
@@ -140,17 +141,18 @@ jobs:
         Write-Host
         Write-Host "Parameters"
         Write-Host
-        Write-Host "Target Path       : " $targetPath
-        Write-Host "Config File       : " $ispwConfigFilePath
+        Write-Host "Target Path       :" $targetPath
+        Write-Host "Config File       :" $ispwConfigFilePath
         Write-Host "Stream            : $(codePipelineStream)"
         Write-Host "App               : $(codePipelineApplication)"
         Write-Host "SubApp            : $(codePipelineSubApplication)"
         Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
         Write-Host "Level             : $(codePipelineLevel)"
         Write-Host "Git Repo          : $(Build.Repository.Uri).git"
-        Write-Host "Git Branch        : " $gitBranch
-        Write-Host "Git From          : " $previousCommit
-        Write-Host "Git To            : " $currentCommit
+        Write-Host "Git Branch        :" $gitBranch
+        Write-Host "Git From          :" $previousCommit
+        Write-Host "Git To            :" $currentCommit
+        Write-Host
 
         cmd.exe /c $(cliPath)\IspwCLI.bat `
           -operation syncGitToIspw `
