@@ -173,6 +173,8 @@ jobs:
           -ispwConfigPath $ispwConfigFilePath `
           -ispwServerStream $(codePipelineStream) `
           -ispwServerApp $(codePipelineApplication) `
+          -ispwServerSubAppl $(codePipelineSubApplication) `
+          -assignmentPrefix $(codePipelineAssignmentPrefix) `
           -ispwCheckoutLevel $(codePipelineLevel) `
           -ispwContainerCreation "$(branchCreationRule)" `
           -ispwContainerDescription "$(containerDescription)" `
