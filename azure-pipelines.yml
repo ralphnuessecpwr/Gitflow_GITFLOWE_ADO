@@ -272,14 +272,14 @@ jobs:
     inputs:
       script: |
         echo Executing Unit Tests using Parameters
-        echo Environment      : 5c519facfba8720a90ccc645
+        echo Environment      : $(testEnvironmentId)
         echo User ID          : $(hostUser)
         echo CES URI          : http://cwcc.bmc.com:2020
         echo CES User ID      : $(hostUser)
         echo Test Folder      : $(testRootFolder)/testUnitFolder
         
         $(cliPath)\TotalTestFTCLI.bat ^
-            -e 5c519facfba8720a90ccc645 ^
+            -e $(testEnvironmentId) ^
             -u $(hostUser) ^
             -p $(hostPassword) ^
             -s http://cwcc.bmc.com:2020/totaltestapi/ ^
@@ -287,7 +287,7 @@ jobs:
             -cesp $(hostPassword) ^
             -f $(testRootFolder)/$(testUnitFolder) ^
             -pnf changedPrograms.json ^
-            -ctxvars '"load_lib=SALESSUP.#0000307.FEAT.LOAD"' ^
+            -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
             -R ^
             -G ^
             -v 6 ^
