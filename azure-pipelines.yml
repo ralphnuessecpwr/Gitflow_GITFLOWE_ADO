@@ -337,7 +337,7 @@ jobs:
 
           if($testResultsParm -eq "") {
 
-            $testScenariosParm  = "sonar.tests="$(testRootFolder)
+            $testScenariosParm  = "sonar.tests=$(testRootFolder)"
             $testResultsParm    = "sonar.testExecutionReportPaths=$testIntegrationResultsPath"
 
           }
