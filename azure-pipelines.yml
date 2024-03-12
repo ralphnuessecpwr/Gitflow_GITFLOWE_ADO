@@ -347,7 +347,7 @@ jobs:
           -id $(hostUser) ^
           -pass $(hostPassword) ^
           -code $(hostCodePage) ^
-          -targetFolder $(Agent.BuildDirectory) ^
+          -targetFolder $(Agent.BuildDirectory)/s ^
           -data $(cliWorkspace) ^
           --cc.repos $(codeCoverageRepo) ^
           --cc.system $(codeCoverageSystem) ^
