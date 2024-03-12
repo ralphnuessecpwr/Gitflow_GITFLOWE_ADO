@@ -269,6 +269,7 @@ jobs:
   - checkout: none  
   - task: CmdLine@2
     displayName: Run Unit Tests
+    targetType: 'inline'
     inputs:
       script: |
         echo Executing Unit Tests using Parameters
@@ -279,27 +280,29 @@ jobs:
         echo Test Folder      : $(testRootFolder)/testUnitFolder
         
         $(cliPath)\TotalTestFTCLI.bat ^
-            -e $(testEnvironmentId) ^
-            -u $(hostUser) ^
-            -p $(hostPassword) ^
-            -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-            -cesu $(hostUser) ^
-            -cesp $(hostPassword) ^
-            -f $(testRootFolder)/$(testUnitFolder) ^
-            -pnf changedPrograms.json ^
-            -ccrepo $(codeCoverageRepo) ^
-            -ccsys $(codeCoverageSystem) ^
-            -cctid $(codeCoverageTestid) ^
-            -ccclear true ^
-            -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-            -R ^
-            -G ^
-            -v 6 ^
-            -l jenkins ^
-            -loglevel INFO ^
-            -data $(cliWorkspace)
+          -e $(testEnvironmentId) ^
+          -u $(hostUser) ^
+          -p $(hostPassword) ^
+          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+          -cesu $(hostUser) ^
+          -cesp $(hostPassword) ^
+          -f $(testRootFolder)/$(testUnitFolder) ^
+          -pnf changedPrograms.json ^
+          -ccrepo $(codeCoverageRepo) ^
+          -ccsys $(codeCoverageSystem) ^
+          -cctid $(codeCoverageTestid) ^
+          -ccclear true ^
+          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+          -R ^
+          -G ^
+          -v 6 ^
+          -l jenkins ^
+          -loglevel INFO ^
+          -data $(cliWorkspace)
+
   - task: CmdLine@2
     displayName: Run Integration Tests
+    targetType: 'inline'
     inputs:
       script: |
         echo Executing Integration Tests using Parameters
@@ -310,24 +313,26 @@ jobs:
         echo Test Folder      : $(testRootFolder)/testUnitFolder
         
         $(cliPath)\TotalTestFTCLI.bat ^
-            -e $(testEnvironmentId) ^
-            -u $(hostUser) ^
-            -p $(hostPassword) ^
-            -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-            -cesu $(hostUser) ^
-            -cesp $(hostPassword) ^
-            -f $(testRootFolder)/$(testIntegrationFolder) ^
-            -pnf changedPrograms.json ^
-            -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-            -R ^
-            -G ^
-            -v 6 ^
-            -l jenkins ^
-            -loglevel INFO ^
-            -data $(cliWorkspace)
+          -e $(testEnvironmentId) ^
+          -u $(hostUser) ^
+          -p $(hostPassword) ^
+          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+          -cesu $(hostUser) ^
+          -cesp $(hostPassword) ^
+          -f $(testRootFolder)/$(testIntegrationFolder) ^
+          -pnf changedPrograms.json ^
+          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+          -R ^
+          -G ^
+          -v 6 ^
+          -l jenkins ^
+          -loglevel INFO ^
+          -data $(cliWorkspace)
+
   - task: CmdLine@2
-    displayName: DOwnload Code Coverage Data
+    displayName: Download Code Coverage Data
     inputs:
+      targetType: 'inline'
       script: |
         echo Downloading Code Coverage Results using Parameters
         echo Host IP        : $(hostName)
@@ -339,7 +344,7 @@ jobs:
         echo CC Test ID     : $(codeCoverageTestid)
         echo Sources Folder : $(codeCoverageSourcesFolder)
 
-        $(agentCliPath)\CodeCoverageCLI.bat ^
+        $(cliPath)\CodeCoverageCLI.bat ^
           -host $(hostName) ^
           -port $(hostHciPort) ^
           -id $(hostUser) ^
