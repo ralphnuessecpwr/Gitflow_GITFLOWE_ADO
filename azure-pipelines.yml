@@ -349,10 +349,10 @@ jobs:
           -code $(hostCodePage) ^
           -targetFolder $(Agent.BuildDirectory) ^
           -data $(cliWorkspace) ^
-          -cc.repos $(codeCoverageRepo) ^
-          -cc.system $(codeCoverageSystem) ^
-          -cc.test $(codeCoverageTestid) ^          
-          -cc.sources $(codeCoverageSourcesFolder) ^
+          --cc.repos $(codeCoverageRepo) ^
+          --cc.system $(codeCoverageSystem) ^
+          --cc.test $(codeCoverageTestid) ^          
+          --cc.sources $(codeCoverageSourcesFolder) ^
           -timeout 0
 
   # - task: BMCTTAutoRun@1
