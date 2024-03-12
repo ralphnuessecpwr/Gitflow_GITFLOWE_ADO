@@ -312,6 +312,56 @@ jobs:
   condition: always()
   steps:
   - checkout: none  
+  - task: PowerShell@2
+    name: collectOutputs
+    displayName: Collect Output Files for Sonar
+    inputs:
+      targetType: 'inline'
+      script: |
+        $testScenariosParm          = ""
+        $testResultsParm            = ""
+        $codeCoverageParm           = ""
+
+        $testUnitResultsPath        = "$(testOutputFolder)\$(testUnitFolder).cli.suite.sonar.xml"
+        $testIntegrationResultsPath = "$(testOutputFolder)\$(testIntegrationFolder).cli.suite.sonar.xml"
+        $codeCoverageResultsPath    = "$(codeCoverageFolder)\CodeCoverage.xml"
+
+        if((Test-Path -Path $testUnitResultsPath -PathType Leaf)) {
+
+          $testScenariosParm  = "sonar.tests="$(testRootFolder)
+          $testResultsParm    = "sonar.testExecutionReportPaths=$testUnitResultsPath"
+
+        }
+
+        if(Test-Path -Path $testIntegrationResultsPath -PathType Leaf)) {
+
+          if($testResultsParm -eq "") {
+
+            $testScenariosParm  = "sonar.tests="$(testRootFolder)
+            $testResultsParm    = "sonar.testExecutionReportPaths=$testIntegrationResultsPath"
+
+          }
+          else
+          {
+            $testResultsParm    = "$testResultsParm,$testIntegrationResultsPath"
+          }
+        }
+
+        if(Test-Path -Path $codeCoverageResultsPath -PathType Leaf)) {
+          
+          $codeCoverageParm = "sonar.coverageReportPaths="$codeCoverageResultsPath
+        
+        }
+
+        Write-Host "Sonar Parms"
+        Write-Host "Scenario: " + $testScenariosParm
+        Write-Host "Results : " + $testResultsParm
+        Write-Host "CoCo    : " + $codeCoverageParm
+
+        #Write-Host "##vso[task.setvariable variable=taskIds;isoutput=true]$taskParm"
+        #Write-Host "##vso[task.setvariable variable=taskLevel;isoutput=true]$taskLevel"
+        #Write-Host "##vso[task.setvariable variable=assignmentId;isoutput=true]$assignmentId"
+
   - task: SonarQubePrepare@5
     inputs:
       SonarQube: 'Sonar'
@@ -323,7 +373,7 @@ jobs:
       extraProperties: |
         sonar.branch.name=$(Build.SourceBranchName)
         sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
-        Dsonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
+        sonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
         sonar.cobol.copy.suffixes=cpy
         sonar.ws.timeout=480
         sonar.sourceEncoding=UTF-8
