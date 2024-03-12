@@ -341,8 +341,6 @@ jobs:
         echo CC Test ID     : $(codeCoverageTestid)
         echo Sources Folder : $(codeCoverageSourcesFolder)
 
-        echo "$(cliPath)\CodeCoverageCLI.bat -host $(hostName) -port $(hostHciPort) -id $(hostUser) -pass $(hostPassword) -code $(hostCodePage) -targetFolder $(Agent.BuildDirectory) -data $(cliWorkspace) --cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder) -timeout 0"
-
         $(cliPath)\CodeCoverageCLI.bat ^
           -host $(hostName) ^
           -port $(hostHciPort) ^
