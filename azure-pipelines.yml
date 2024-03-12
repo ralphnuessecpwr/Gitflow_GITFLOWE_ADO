@@ -287,6 +287,10 @@ jobs:
             -cesp $(hostPassword) ^
             -f $(testRootFolder)/$(testUnitFolder) ^
             -pnf changedPrograms.json ^
+            -ccrepo $(codeCoverageRepo) ^
+            -ccsys $(codeCoverageSystem) ^
+            -cctid $(codeCoverageTestid) ^
+            -ccclear true ^
             -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
             -R ^
             -G ^
@@ -294,6 +298,60 @@ jobs:
             -l jenkins ^
             -loglevel INFO ^
             -data $(cliWorkspace)
+  - task: CmdLine@2
+    displayName: Run Integration Tests
+    inputs:
+      script: |
+        echo Executing Integration Tests using Parameters
+        echo Environment      : $(testEnvironmentId)
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwcc.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/testUnitFolder
+        
+        $(cliPath)\TotalTestFTCLI.bat ^
+            -e $(testEnvironmentId) ^
+            -u $(hostUser) ^
+            -p $(hostPassword) ^
+            -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+            -cesu $(hostUser) ^
+            -cesp $(hostPassword) ^
+            -f $(testRootFolder)/$(testIntegrationFolder) ^
+            -pnf changedPrograms.json ^
+            -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+            -R ^
+            -G ^
+            -v 6 ^
+            -l jenkins ^
+            -loglevel INFO ^
+            -data $(cliWorkspace)
+  - task: CmdLine@2
+    displayName: DOwnload Code Coverage Data
+    inputs:
+      script: |
+        echo Downloading Code Coverage Results using Parameters
+        echo Host IP        : $(hostName)
+        echo Port           : $(hostHciPort)
+        echo User ID        : $(hostUser)
+        echo Codepage       : $(hostCodePage)
+        echo CC Repository  : $(codeCoverageRepo)
+        echo CC System      : $(codeCoverageSystem)
+        echo CC Test ID     : $(codeCoverageTestid)
+        echo Sources Folder : $(codeCoverageSourcesFolder)
+
+        $(agentCliPath)\CodeCoverageCLI.bat ^
+          -host $(hostName) ^
+          -port $(hostHciPort) ^
+          -id $(hostUser) ^
+          -pass $(hostPassword) ^
+          -code $(hostCodePage) ^
+          -targetFolder $(Agent.BuildDirectory) ^
+          -data $(cliWorkspace) ^
+          -cc.repos $(codeCoverageRepo) ^
+          -cc.system $(codeCoverageSystem) ^
+          -cc.test $(codeCoverageTestid) ^          
+          -cc.sources $(codeCoverageSourcesFolder) ^
+          -timeout 0
 
   # - task: BMCTTAutoRun@1
   #   displayName: Run Unit Tests
@@ -356,9 +414,9 @@ jobs:
         }
 
         Write-Host "Sonar Parms"
-        Write-Host "Scenario: " + $testScenariosParm
-        Write-Host "Results : " + $testResultsParm
-        Write-Host "CoCo    : " + $codeCoverageParm
+        Write-Host "Scenario: $testScenariosParm"
+        Write-Host "Results : $testResultsParm"
+        Write-Host "CoCo    : $codeCoverageParm"
 
         Write-Host "##vso[task.setvariable variable=testScenariosParm;isoutput=true]$testScenariosParm"
         Write-Host "##vso[task.setvariable variable=testResultsParm;isoutput=true]$testResultsParm"
@@ -373,7 +431,6 @@ jobs:
       cliProjectName: 'GITFLOW_GITFLOWE_Azure'
       cliSources: './GenApp_MainframeCore/Sources'
       extraProperties: |
-        sonar.verbose=true
         sonar.branch.name=$(Build.SourceBranchName)
         sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
         sonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
