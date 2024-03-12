@@ -326,14 +326,14 @@ jobs:
         $testIntegrationResultsPath = "$(testOutputFolder)\$(testIntegrationFolder).cli.suite.sonar.xml"
         $codeCoverageResultsPath    = "$(codeCoverageFolder)\CodeCoverage.xml"
 
-        if((Test-Path -Path $testUnitResultsPath -PathType Leaf)) {
+        if(Test-Path -Path $testUnitResultsPath -PathType Leaf) {
 
-          $testScenariosParm  = "sonar.tests="$(testRootFolder)
+          $testScenariosParm  = "sonar.tests=$(testRootFolder)"
           $testResultsParm    = "sonar.testExecutionReportPaths=$testUnitResultsPath"
 
         }
 
-        if(Test-Path -Path $testIntegrationResultsPath -PathType Leaf)) {
+        if(Test-Path -Path $testIntegrationResultsPath -PathType Leaf) {
 
           if($testResultsParm -eq "") {
 
@@ -343,13 +343,15 @@ jobs:
           }
           else
           {
+
             $testResultsParm    = "$testResultsParm,$testIntegrationResultsPath"
+          
           }
         }
 
-        if(Test-Path -Path $codeCoverageResultsPath -PathType Leaf)) {
+        if(Test-Path -Path $codeCoverageResultsPath -PathType Leaf) {
           
-          $codeCoverageParm = "sonar.coverageReportPaths="$codeCoverageResultsPath
+          $codeCoverageParm = "sonar.coverageReportPaths=$codeCoverageResultsPath"
         
         }
 
@@ -358,9 +360,9 @@ jobs:
         Write-Host "Results : " + $testResultsParm
         Write-Host "CoCo    : " + $codeCoverageParm
 
-        #Write-Host "##vso[task.setvariable variable=taskIds;isoutput=true]$taskParm"
-        #Write-Host "##vso[task.setvariable variable=taskLevel;isoutput=true]$taskLevel"
-        #Write-Host "##vso[task.setvariable variable=assignmentId;isoutput=true]$assignmentId"
+        #Write-Host "##vso[task.setvariable variable=testScenariosParm;isoutput=true]$testScenariosParm"
+        #Write-Host "##vso[task.setvariable variable=testResultsParm;isoutput=true]$testResultsParm"
+        #Write-Host "##vso[task.setvariable variable=codeCoverageParm;isoutput=true]$codeCoverageParm"
 
   - task: SonarQubePrepare@5
     inputs:
@@ -375,6 +377,9 @@ jobs:
         sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
         sonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
         sonar.cobol.copy.suffixes=cpy
+        $(collectOutputs.testScenariosParm)
+        $(collectOutputs.testResultsParm)
+        $(collectOutputs.codeCoverageParm)
         sonar.ws.timeout=480
         sonar.sourceEncoding=UTF-8
   - task: SonarQubeAnalyze@5
