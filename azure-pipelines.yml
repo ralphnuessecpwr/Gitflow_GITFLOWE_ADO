@@ -360,9 +360,9 @@ jobs:
         Write-Host "Results : " + $testResultsParm
         Write-Host "CoCo    : " + $codeCoverageParm
 
-        #Write-Host "##vso[task.setvariable variable=testScenariosParm;isoutput=true]$testScenariosParm"
-        #Write-Host "##vso[task.setvariable variable=testResultsParm;isoutput=true]$testResultsParm"
-        #Write-Host "##vso[task.setvariable variable=codeCoverageParm;isoutput=true]$codeCoverageParm"
+        Write-Host "##vso[task.setvariable variable=testScenariosParm;isoutput=true]$testScenariosParm"
+        Write-Host "##vso[task.setvariable variable=testResultsParm;isoutput=true]$testResultsParm"
+        Write-Host "##vso[task.setvariable variable=codeCoverageParm;isoutput=true]$codeCoverageParm"
 
   - task: SonarQubePrepare@5
     inputs:
