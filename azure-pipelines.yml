@@ -373,6 +373,7 @@ jobs:
       cliProjectName: 'GITFLOW_GITFLOWE_Azure'
       cliSources: './GenApp_MainframeCore/Sources'
       extraProperties: |
+        sonar.verbose=true
         sonar.branch.name=$(Build.SourceBranchName)
         sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
         sonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
