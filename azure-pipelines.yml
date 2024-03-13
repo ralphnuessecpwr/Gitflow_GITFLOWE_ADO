@@ -267,65 +267,78 @@ jobs:
   condition: and(succeeded('buildMainframeCode'), eq(variables.codePipelineLevel, 'FEAT'))
   steps:
   - checkout: none  
-  # - task: CmdLine@2
+
+  # - task: BMCTTAutoRun@1
   #   displayName: Run Unit Tests
   #   inputs:
-  #     script: |
-  #       echo Executing Unit Tests using Parameters
-  #       echo Environment      : $(testEnvironmentId)
-  #       echo User ID          : $(hostUser)
-  #       echo CES URI          : http://cwcc.bmc.com:2020
-  #       echo CES User ID      : $(hostUser)
-  #       echo Test Folder      : $(testRootFolder)/testUnitFolder
-        
-  #       $(cliPath)\TotalTestFTCLI.bat ^
-  #         -e $(testEnvironmentId) ^
-  #         -u $(hostUser) ^
-  #         -p $(hostPassword) ^
-  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-  #         -cesu $(hostUser) ^
-  #         -cesp $(hostPassword) ^
-  #         -f $(testRootFolder)/$(testUnitFolder) ^
-  #         -pnf changedPrograms.json ^
-  #         -ccrepo $(codeCoverageRepo) ^
-  #         -ccsys $(codeCoverageSystem) ^
-  #         -cctid $(codeCoverageTestid) ^
-  #         -ccclear true ^
-  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-  #         -R ^
-  #         -G ^
-  #         -v 6 ^
-  #         -l jenkins ^
-  #         -loglevel INFO ^
-  #         -data $(cliWorkspace)
+  #     HCIConnection: $(hostConnection)
+  #     UserID: $(hostUser)
+  #     Password: $(hostPassword)
+  #     TestLocationPath: '$(testRootFolder)/$(testUnitFolder)'
+  #     CLIInstallationPath: $(cliPath)
+  #     Configuration: 'LocalTTTConf'
+  #     LocalTTTConfiguration: '$(testRootFolder)/$(testConfigurationFolder)'
 
-  # - task: CmdLine@2
-  #   displayName: Run Integration Tests
-  #   inputs:
-  #     script: |
-  #       echo Executing Integration Tests using Parameters
-  #       echo Environment      : $(testEnvironmentId)
-  #       echo User ID          : $(hostUser)
-  #       echo CES URI          : http://cwcc.bmc.com:2020
-  #       echo CES User ID      : $(hostUser)
-  #       echo Test Folder      : $(testRootFolder)/testUnitFolder
+  - task: CmdLine@2
+    displayName: Run Unit Tests
+    inputs:
+      script: |
+        echo Executing Unit Tests using Parameters
+        echo Environment      : $(testEnvironmentId)
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwcc.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/testUnitFolder
         
-  #       $(cliPath)\TotalTestFTCLI.bat ^
-  #         -e $(testEnvironmentId) ^
-  #         -u $(hostUser) ^
-  #         -p $(hostPassword) ^
-  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-  #         -cesu $(hostUser) ^
-  #         -cesp $(hostPassword) ^
-  #         -f $(testRootFolder)/$(testIntegrationFolder) ^
-  #         -pnf changedPrograms.json ^
-  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-  #         -R ^
-  #         -G ^
-  #         -v 6 ^
-  #         -l jenkins ^
-  #         -loglevel INFO ^
-  #         -data $(cliWorkspace)
+        $(cliPath)\TotalTestFTCLI.bat ^
+          -e $(testEnvironmentId) ^
+          -u $(hostUser) ^
+          -p $(hostPassword) ^
+          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+          -cesu $(hostUser) ^
+          -cesp $(hostPassword) ^
+          -f $(testRootFolder)/$(testUnitFolder) ^
+          -pnf changedPrograms.json ^
+          -ccrepo $(codeCoverageRepo) ^
+          -ccsys $(codeCoverageSystem) ^
+          -cctid $(codeCoverageTestid) ^
+          -ccclear true ^
+          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+          -R ^
+          -G ^
+          -v 6 ^
+          -l jenkins ^
+          -loglevel INFO ^
+          -data $(cliWorkspace)
+
+  - task: CmdLine@2
+    displayName: Run Integration Tests
+    inputs:
+      script: |
+        echo Executing Integration Tests using Parameters
+        echo Environment      : $(testEnvironmentId)
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwcc.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/testUnitFolder
+        
+        $(cliPath)\TotalTestFTCLI.bat ^
+          -e $(testEnvironmentId) ^
+          -u $(hostUser) ^
+          -p $(hostPassword) ^
+          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+          -cesu $(hostUser) ^
+          -cesp $(hostPassword) ^
+          -f $(testRootFolder)/$(testIntegrationFolder) ^
+          -pnf changedPrograms.json ^
+          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+          -R ^
+          -G ^
+          -v 6 ^
+          -l jenkins ^
+          -loglevel INFO ^
+          -data $(cliWorkspace)
+
   - task: PowerShell@2
     displayName: Set Code COverage Parms
     inputs:
@@ -347,7 +360,6 @@ jobs:
       userId: $(hostUser)
       credentialId: $(hostPassword)
       targetFolder: "$(Agent.BuildDirectory)/s"
-#      targetFolder: "./"
       windowsTopazWorkbenchCliHome: '$(cliPath)'
       linuxTopazWorkbenchCliHome: '/u/bmc'
       m_analysisPropertiesPath: './ccanalysis.properties'
@@ -384,17 +396,6 @@ jobs:
 #          --cc.test $(codeCoverageTestid) ^
 #          --cc.sources $(codeCoverageSourcesFolder) ^
 #          -timeout 0
-
-  # - task: BMCTTAutoRun@1
-  #   displayName: Run Unit Tests
-  #   inputs:
-  #     HCIConnection: $(hostConnection)
-  #     UserID: $(hostUser)
-  #     Password: $(hostPassword)
-  #     TestLocationPath: '$(testRootFolder)/$(testUnitFolder)'
-  #     CLIInstallationPath: $(cliPath)
-  #     Configuration: 'LocalTTTConf'
-  #     LocalTTTConfiguration: '$(testRootFolder)/$(testConfigurationFolder)'
 
 - job: sonar
   displayName: Run Sonar Scan
@@ -473,12 +474,15 @@ jobs:
         $(collectOutputs.codeCoverageParm)
         sonar.ws.timeout=480
         sonar.sourceEncoding=UTF-8
+
   - task: SonarQubeAnalyze@5
     displayName: Execute Analysis
+
   - task: SonarQubePublish@5
     displayName: Wait for Analysis to finish
     inputs:
       pollingTimeoutSec: '300'  
+      
   - task: PowerShell@2
     displayName: Check Sonar Quality Gate
     inputs:
