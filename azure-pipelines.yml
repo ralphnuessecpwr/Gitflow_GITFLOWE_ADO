@@ -537,8 +537,8 @@ jobs:
   - sonar
   condition: and(succeeded('sonar'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Rlse.releaseTag'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    myReleaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Rlse.releaseTag'] ]
+    myAssignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
   steps:
   - checkout: none
   - task: PowerShell@2
@@ -554,8 +554,12 @@ jobs:
         $headers = @{}
         $headers.Add("Authorization", "$(azureToken)")
         $headers.Add("Content-Type", "application/json")
+        
         Write-Host "Release Tag"
-        Write-Host $releaseTag
+        Write-Host $myReleaseTag
+        Write-Host "Assignment"
+        Write-Host $myAssignmentId
+        Write-Host 
 
         $releaseId = "$(codePipelineApplication)" + $releaseTag.Substring(1,8).Replace('.', '')
 
@@ -563,10 +567,10 @@ jobs:
           "definitionId": "$(releaseDefinitionId)",
           "variables": {
             "assignmentId": {
-              "value": "$(assignmentId)"
+              "value": "$(myAssignmentId)"
             },
             "releaseTag": {
-              "value": "$(releaseTag)"
+              "value": "$(myReleaseTag)"
             },
             "releaseId": {
               "value": "$(releaseId)"
