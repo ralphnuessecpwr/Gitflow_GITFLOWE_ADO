@@ -454,8 +454,9 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $fullBranch = "$(Build.SourceBranch)"
-        $gitBranch  = $fullBranch.substring($fullBranch.lastindexof('heads/') + 6)
+        #$fullBranch = "$(Build.SourceBranch)"
+        #$gitBranch  = $fullBranch.substring($fullBranch.lastindexof('heads/') + 6)
+        $gitBranch = "$(Build.SourceBranchName)"
 
         Write-Host "Retrieve Sonar Quality Gate status for"
         Write-Host "Project: $(sonarProjectName)"
