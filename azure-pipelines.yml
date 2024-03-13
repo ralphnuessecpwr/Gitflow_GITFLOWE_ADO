@@ -327,33 +327,44 @@ jobs:
           -loglevel INFO ^
           -data $(cliWorkspace)
 
-  - task: CmdLine@2
+  - task: bmc-compuware-xpediter-code-coverage-plugin@1
     displayName: Download Code Coverage Data
     inputs:
-      script: |
-        echo Downloading Code Coverage Results using Parameters
-        echo Host IP        : $(hostName)
-        echo Port           : $(hostHciPort)
-        echo User ID        : $(hostUser)
-        echo Codepage       : $(hostCodePage)
-        echo CC Repository  : $(codeCoverageRepo)
-        echo CC System      : $(codeCoverageSystem)
-        echo CC Test ID     : $(codeCoverageTestid)
-        echo Sources Folder : $(codeCoverageSourcesFolder)
+      connectionId: $(hostConnection)
+      userId: $(hostUsers)
+      credentialId: $(hostPassword)
+      targetFolder: "$(Agent.BuildDirectory)/s"
+      windowsTopazWorkbenchCliHome: $(cliPath)
+      linuxTopazWorkbenchCliHome: '/u/bmc'
+      m_analysisProperties: '--cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder)'
 
-        $(cliPath)\CodeCoverageCLI.bat ^
-          -host $(hostName) ^
-          -port $(hostHciPort) ^
-          -id $(hostUser) ^
-          -pass $(hostPassword) ^
-          -code $(hostCodePage) ^
-          -targetFolder $(Agent.BuildDirectory)/s ^
-          -data $(cliWorkspace) ^
-          --cc.repos $(codeCoverageRepo) ^
-          --cc.system $(codeCoverageSystem) ^
-          --cc.test $(codeCoverageTestid) ^
-          --cc.sources $(codeCoverageSourcesFolder) ^
-          -timeout 0
+#  - task: CmdLine@2
+#    displayName: Download Code Coverage Data
+#    inputs:
+#      script: |
+#        echo Downloading Code Coverage Results using Parameters
+#        echo Host IP        : $(hostName)
+#        echo Port           : $(hostHciPort)
+#        echo User ID        : $(hostUser)
+#        echo Codepage       : $(hostCodePage)
+#        echo CC Repository  : $(codeCoverageRepo)
+#        echo CC System      : $(codeCoverageSystem)
+#        echo CC Test ID     : $(codeCoverageTestid)
+#        echo Sources Folder : $(codeCoverageSourcesFolder)
+#
+#        $(cliPath)\CodeCoverageCLI.bat ^
+#          -host $(hostName) ^
+#          -port $(hostHciPort) ^
+#          -id $(hostUser) ^
+#          -pass $(hostPassword) ^
+#          -code $(hostCodePage) ^
+#          -targetFolder $(Agent.BuildDirectory)/s ^
+#          -data $(cliWorkspace) ^
+#          --cc.repos $(codeCoverageRepo) ^
+#          --cc.system $(codeCoverageSystem) ^
+#          --cc.test $(codeCoverageTestid) ^
+#          --cc.sources $(codeCoverageSourcesFolder) ^
+#          -timeout 0
 
   # - task: BMCTTAutoRun@1
   #   displayName: Run Unit Tests
