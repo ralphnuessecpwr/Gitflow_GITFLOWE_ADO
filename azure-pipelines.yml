@@ -339,10 +339,10 @@ jobs:
       linuxTopazWorkbenchCliHome: '/u/bmc'
       #m_analysisPropertiesPath: './ccanalysis.properties'
        m_analysisProperties: | 
-         cc.repos=$(codeCoverageRepo)
-         cc.system=$(codeCoverageSystem)
-         cc.test=$(codeCoverageTestid)
-         cc.sources=$(codeCoverageSourcesFolder)
+        cc.repos=$(codeCoverageRepo)
+        cc.system=$(codeCoverageSystem)
+        cc.test=$(codeCoverageTestid)
+        cc.sources=$(codeCoverageSourcesFolder)
 
 #  - task: CmdLine@2
 #    displayName: Download Code Coverage Data
