@@ -338,7 +338,7 @@ jobs:
       windowsTopazWorkbenchCliHome: '$(cliPath)'
       linuxTopazWorkbenchCliHome: '/u/bmc'
       #m_analysisPropertiesPath: './ccanalysis.properties'
-       m_analysisProperties: | 
+      m_analysisProperties: | 
         cc.repos=$(codeCoverageRepo)
         cc.system=$(codeCoverageSystem)
         cc.test=$(codeCoverageTestid)
