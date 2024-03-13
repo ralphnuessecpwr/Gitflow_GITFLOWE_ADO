@@ -141,6 +141,7 @@ jobs:
           }
         }        
         
+        Write-Host "Storing current Tag "$currentTag
         Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
 
         Write-Host 'Will synchronize Commits starting from' $previousCommit 'and ending with' $currentCommit
@@ -555,7 +556,7 @@ jobs:
         $headers.Add("Content-Type", "application/json")
         Write-Host "Release Tag"
         Write-Host $releaseTag
-        
+
         $releaseId = "$(codePipelineApplication)" + $releaseTag.Substring(1,8).Replace('.', '')
 
         $requestBody = '{
