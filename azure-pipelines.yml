@@ -50,8 +50,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $ispwConfigFilePath = '"$(codePipelineConfigYml)"'
-        out-file -FilePath $ispwConfigFilePath -InputObject (Get-Content -Raw $ispwConfigFilePath).Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
+        $ispwConfigFilePath = '$(codePipelineConfigYml)'
+        out-file -FilePath "$ispwConfigFilePath" -InputObject (Get-Content -Raw "$ispwConfigFilePath").Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
   # Synchronize code for feature branch, using extension
   #- task: azure-deveops-ispw-operation-task@2
   #  name: synchMainframeCode2Feat
@@ -544,7 +544,6 @@ jobs:
         $restUri = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
                     
         $headers = @{}
-        #$headers.Add("Authorization", "Bearer $env:SYSTEM_ACCESSTOKEN")
         $headers.Add("Authorization", "$(azureToken)")
         $headers.Add("Content-Type", "application/json")
 
