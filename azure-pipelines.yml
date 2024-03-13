@@ -51,7 +51,7 @@ jobs:
       targetType: 'inline'
       script: |
         $ispwConfigFilePath = '"$(codePipelineConfigYml)"'
-        out-file -FilePath $ispwConfigFilePath -InputObject (Get-Content -Raw ispwconfig.yml).Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
+        out-file -FilePath $ispwConfigFilePath -InputObject (Get-Content -Raw $ispwConfigFilePath).Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
   # Synchronize code for feature branch, using extension
   #- task: azure-deveops-ispw-operation-task@2
   #  name: synchMainframeCode2Feat
@@ -482,7 +482,7 @@ jobs:
     displayName: Wait for Analysis to finish
     inputs:
       pollingTimeoutSec: '300'  
-      
+
   - task: PowerShell@2
     displayName: Check Sonar Quality Gate
     inputs:
