@@ -445,9 +445,10 @@ jobs:
         sonar.sourceEncoding=UTF-8
   - task: SonarQubeAnalyze@5
     displayName: Execute Analysis
-#  - task: SonarQubePublish@5
-#    inputs:
-#      pollingTimeoutSec: '300'  
+  - task: SonarQubePublish@5
+    displayName: Wait for Analysis to finish
+    inputs:
+      pollingTimeoutSec: '300'  
   - task: PowerShell@2
     displayName: Check Sonar Quality Gate
     inputs:
@@ -464,6 +465,8 @@ jobs:
         $headers = @{}
         $headers.Add("Authorization", '"$(sonarToken)"')
         $headers.Add("Content-Type", "application/json")
+
+        Write-Host
         Write-Host "Checking Sonar Quality Gate Status for Project "$(sonarProjectName)"."
         Write-Host "URL"
         Write-Host $uri
@@ -471,6 +474,7 @@ jobs:
         
         $status = $response.projectStatus.status
         
+        Write-Host
         Write-Host "Checked Sonar Quality Gate status for Project "$(sonarProjectName)"."
         Write-Host "Status is "$status"."
         
