@@ -331,7 +331,7 @@ jobs:
     displayName: Download Code Coverage Data
     inputs:
       connectionId: $(hostConnection)
-      userId: $(hostUsers)
+      userId: $(hostUser)
       credentialId: $(hostPassword)
       targetFolder: "$(Agent.BuildDirectory)/s"
 #      targetFolder: "./"
