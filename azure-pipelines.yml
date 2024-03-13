@@ -134,10 +134,10 @@ jobs:
 
           if($tagList.Length -gt 1){            
             $previousTag      = $tagList[1].Trim()            
-            $previousCommit   = (git rev-list -1 $previousTag)
+            $previousCommit   = (git rev-list -1 $previousTag).Trim()
           }
           else {
-            $previousCommit   = '-1'
+            $previousCommit   = (git rev-list --max-parents=0 HEAD).Trim()
           }
         }        
         
