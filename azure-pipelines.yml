@@ -141,7 +141,6 @@ jobs:
           }
         }        
         
-        Write-Host "Storing current Tag "$currentTag
         Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
 
         Write-Host 'Will synchronize Commits starting from' $previousCommit 'and ending with' $currentCommit
@@ -537,8 +536,8 @@ jobs:
   - sonar
   condition: and(succeeded('sonar'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    myReleaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Rlse.releaseTag'] ]
-    myAssignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    myReleaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode.synchMainframeCode2Rlse.releaseTag'] ]
+    myAssignmentId: $[ dependencies.checkParameters.outputs['checkParameters.buildParameters.assignmentId'] ]
   steps:
   - checkout: none
   - task: PowerShell@2
