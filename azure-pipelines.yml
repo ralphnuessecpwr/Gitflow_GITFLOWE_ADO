@@ -536,8 +536,8 @@ jobs:
   - sonar
   condition: and(succeeded('sonar'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode.synchMainframeCode2Rlse.releaseTag'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['checkParameters.buildParameters.assignmentId'] ]
+    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Rlse.releaseTag'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
   steps:
   - checkout: none
   - task: PowerShell@2
