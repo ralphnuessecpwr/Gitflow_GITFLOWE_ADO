@@ -1,4 +1,4 @@
-﻿!!com.compuware.ispw.wzzms.models.IspwRoot
+!!com.compuware.ispw.wzzms.models.IspwRoot
 ispwApplication:
   host: cwcc.bmc.com
   port: 16196
