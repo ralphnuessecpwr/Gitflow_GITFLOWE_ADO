@@ -553,7 +553,9 @@ jobs:
         $headers = @{}
         $headers.Add("Authorization", "$(azureToken)")
         $headers.Add("Content-Type", "application/json")
-
+        Write-Host "Release Tag"
+        Write-Host $releaseTag
+        
         $releaseId = "$(codePipelineApplication)" + $releaseTag.Substring(1,8).Replace('.', '')
 
         $requestBody = '{
