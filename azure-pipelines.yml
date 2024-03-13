@@ -570,7 +570,7 @@ jobs:
               "value": "$(releaseTag)"
             },
             "releaseId": {
-              "value": "$releaseId"
+              "value": "'$releaseId'"
             }
           }
         }'
