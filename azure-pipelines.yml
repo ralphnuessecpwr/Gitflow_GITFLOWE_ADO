@@ -326,6 +326,19 @@ jobs:
   #         -l jenkins ^
   #         -loglevel INFO ^
   #         -data $(cliWorkspace)
+  - task: PowerShell@2
+    displayName: Set Code COverage Parms
+    inputs:
+      targetType: 'inline'
+      script: |
+        [System.Collections.ArrayList]$parmList= @()
+
+        $parmList.Add("cc.repos=$(codeCoverageRepo)")
+        $parmList.Add("cc.system=$(codeCoverageSystem)")
+        $parmList.Add("cc.test=$(codeCoverageTestid)")
+        $parmList.Add("cc.sources=$(codeCoverageSourcesFolder)")
+
+        out-file -FilePath "./ccanalysis.properties" -InputObject $parmList -Encoding utf8
 
   - task: bmc-compuware-xpediter-code-coverage-plugin@1
     displayName: Download Code Coverage Data
