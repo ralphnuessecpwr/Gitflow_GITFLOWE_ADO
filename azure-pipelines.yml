@@ -554,7 +554,7 @@ jobs:
         $headers.Add("Authorization", "$(azureToken)")
         $headers.Add("Content-Type", "application/json")
         
-        Write-Host "Release Tag : $(myReleaseTag)"
+        Write-Host "Release Tag : $(releaseTag)"
         Write-Host "Assignment  : $(assignmentId)"
 
         $releaseTag = "$(releaseTag)".Substring(1,8).Replace('.', '')
