@@ -132,7 +132,7 @@ jobs:
           $tagList            = (git tag --sort=-refname).Split("`n")
           $currentTag         = $tagList[0].Trim()
 
-          if($tagList.Count -gt 0){            
+          if($tagList.Length -gt 1){            
             $previousTag      = $tagList[1].Trim()            
             $previousCommit   = (git rev-list -1 $previousTag)
           }
