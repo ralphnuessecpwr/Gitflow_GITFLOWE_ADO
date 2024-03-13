@@ -336,7 +336,8 @@ jobs:
       targetFolder: "$(Agent.BuildDirectory)/s"
       windowsTopazWorkbenchCliHome: $(cliPath)
       linuxTopazWorkbenchCliHome: '/u/bmc'
-      m_analysisProperties: '--cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder)'
+      m_analysisPropertiesPath: './'
+#      m_analysisProperties: '--cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder)'
 
 #  - task: CmdLine@2
 #    displayName: Download Code Coverage Data
