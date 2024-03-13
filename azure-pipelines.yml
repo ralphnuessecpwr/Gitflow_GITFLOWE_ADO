@@ -335,9 +335,9 @@ jobs:
       credentialId: $(hostPassword)
       targetFolder: "$(Agent.BuildDirectory)/s"
 #      targetFolder: "./"
-      windowsTopazWorkbenchCliHome: $(cliPath)
+      windowsTopazWorkbenchCliHome: '$(cliPath)'
       linuxTopazWorkbenchCliHome: '/u/bmc'
-      m_analysisPropertiesPath: '$(Agent.BuildDirectory)/s'
+      m_analysisPropertiesPath: '$(Agent.BuildDirectory)/s/ccanalysis.properties'
 #      m_analysisProperties: '--cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder)'
 
 #  - task: CmdLine@2
