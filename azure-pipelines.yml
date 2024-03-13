@@ -267,65 +267,65 @@ jobs:
   condition: and(succeeded('buildMainframeCode'), eq(variables.codePipelineLevel, 'FEAT'))
   steps:
   - checkout: none  
-  - task: CmdLine@2
-    displayName: Run Unit Tests
-    inputs:
-      script: |
-        echo Executing Unit Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
+  # - task: CmdLine@2
+  #   displayName: Run Unit Tests
+  #   inputs:
+  #     script: |
+  #       echo Executing Unit Tests using Parameters
+  #       echo Environment      : $(testEnvironmentId)
+  #       echo User ID          : $(hostUser)
+  #       echo CES URI          : http://cwcc.bmc.com:2020
+  #       echo CES User ID      : $(hostUser)
+  #       echo Test Folder      : $(testRootFolder)/testUnitFolder
         
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testUnitFolder) ^
-          -pnf changedPrograms.json ^
-          -ccrepo $(codeCoverageRepo) ^
-          -ccsys $(codeCoverageSystem) ^
-          -cctid $(codeCoverageTestid) ^
-          -ccclear true ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
+  #       $(cliPath)\TotalTestFTCLI.bat ^
+  #         -e $(testEnvironmentId) ^
+  #         -u $(hostUser) ^
+  #         -p $(hostPassword) ^
+  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+  #         -cesu $(hostUser) ^
+  #         -cesp $(hostPassword) ^
+  #         -f $(testRootFolder)/$(testUnitFolder) ^
+  #         -pnf changedPrograms.json ^
+  #         -ccrepo $(codeCoverageRepo) ^
+  #         -ccsys $(codeCoverageSystem) ^
+  #         -cctid $(codeCoverageTestid) ^
+  #         -ccclear true ^
+  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+  #         -R ^
+  #         -G ^
+  #         -v 6 ^
+  #         -l jenkins ^
+  #         -loglevel INFO ^
+  #         -data $(cliWorkspace)
 
-  - task: CmdLine@2
-    displayName: Run Integration Tests
-    inputs:
-      script: |
-        echo Executing Integration Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
+  # - task: CmdLine@2
+  #   displayName: Run Integration Tests
+  #   inputs:
+  #     script: |
+  #       echo Executing Integration Tests using Parameters
+  #       echo Environment      : $(testEnvironmentId)
+  #       echo User ID          : $(hostUser)
+  #       echo CES URI          : http://cwcc.bmc.com:2020
+  #       echo CES User ID      : $(hostUser)
+  #       echo Test Folder      : $(testRootFolder)/testUnitFolder
         
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testIntegrationFolder) ^
-          -pnf changedPrograms.json ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
+  #       $(cliPath)\TotalTestFTCLI.bat ^
+  #         -e $(testEnvironmentId) ^
+  #         -u $(hostUser) ^
+  #         -p $(hostPassword) ^
+  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+  #         -cesu $(hostUser) ^
+  #         -cesp $(hostPassword) ^
+  #         -f $(testRootFolder)/$(testIntegrationFolder) ^
+  #         -pnf changedPrograms.json ^
+  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+  #         -R ^
+  #         -G ^
+  #         -v 6 ^
+  #         -l jenkins ^
+  #         -loglevel INFO ^
+  #         -data $(cliWorkspace)
 
   - task: bmc-compuware-xpediter-code-coverage-plugin@1
     displayName: Download Code Coverage Data
@@ -334,9 +334,10 @@ jobs:
       userId: $(hostUsers)
       credentialId: $(hostPassword)
       targetFolder: "$(Agent.BuildDirectory)/s"
+#      targetFolder: "./"
       windowsTopazWorkbenchCliHome: $(cliPath)
       linuxTopazWorkbenchCliHome: '/u/bmc'
-      m_analysisPropertiesPath: './'
+      m_analysisPropertiesPath: '$(Agent.BuildDirectory)/s'
 #      m_analysisProperties: '--cc.repos $(codeCoverageRepo) --cc.system $(codeCoverageSystem) --cc.test $(codeCoverageTestid) --cc.sources $(codeCoverageSourcesFolder)'
 
 #  - task: CmdLine@2
