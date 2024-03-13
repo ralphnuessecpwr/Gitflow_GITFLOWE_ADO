@@ -129,9 +129,16 @@ jobs:
         }        
         elseif ($gitBranch.ToLower().Contains("release"))
         {
-          $currentTag                 = (git tag --sort=-refname).Split("`n")[0].Trim()
-          $previousTag                = (git tag --sort=-refname).Split("`n")[1].Trim()            
-          $previousCommit             = (git rev-list -1 $previousTag)
+          $tagList            = (git tag --sort=-refname).Split("`n")
+          $currentTag         = $tagList[0].Trim()
+
+          if($tagList.Count -gt 0){            
+            $previousTag      = $tagList[1].Trim()            
+            $previousCommit   = (git rev-list -1 $previousTag)
+          }
+          else {
+            $previousCommit   = '-1'
+          }
         }        
         
         Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
