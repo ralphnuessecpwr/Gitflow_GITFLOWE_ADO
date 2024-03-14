@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test4Build.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test5Build.$(Rev:r)
 
 pr: none
 
@@ -134,7 +134,7 @@ jobs:
       script: |
         $revision = '$(prepareSynch.revision)'
 
-        if($(codePipelineLevel) -eq 'FEAT' -and $revision -eq '1') {
+        if('$(codePipelineLevel)' -eq 'FEAT' -and $revision -eq '1') {
           Write-Host "Skipping synchronization for 1 Build of the branch."
         }
         else{
