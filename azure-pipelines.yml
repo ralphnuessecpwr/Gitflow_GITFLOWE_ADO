@@ -16,7 +16,7 @@ variables:
 - name: upperBranchName
   value: $[upper(variables['Build.SourceBranchName'])]
 - name: branchBuildNum
-  value: '$(Rev:r)'
+  value: variables['Rev:r']
 - name: branchMapping
   ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
     value: 'feature/** => FEAT,custom,PUSH TO FEATURE/$(upperBranchName)'
