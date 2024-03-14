@@ -68,6 +68,9 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
+        write-host "Build Number"
+        Weite-Host $(branchBuildNum)
+
         $gitLocalPath               = '.\'
         $targetPath                 = '.\'
         $gitFullBranch              = "$(Build.SourceBranch)"
