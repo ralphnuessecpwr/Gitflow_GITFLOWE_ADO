@@ -377,10 +377,10 @@ jobs:
           -data $(cliWorkspace)
 
   - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
+    displayName: Publish Test Results
     inputs:
       testResultsFormat: 'JUnit'
-      testResultsFiles: '**/*.junit.xml'
+      testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
       searchFolder: './TTTUnit'      
       testRunTitle: 'Build_$(Build.BuildNumber)'
 
