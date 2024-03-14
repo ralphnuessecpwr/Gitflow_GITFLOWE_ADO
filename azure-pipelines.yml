@@ -69,7 +69,7 @@ jobs:
       targetType: 'inline'
       script: |
         write-host "Build Number"
-        Weite-Host $(branchBuildNum)
+        Write-Host $(branchBuildNum)
 
         $gitLocalPath               = '.\'
         $targetPath                 = '.\'
