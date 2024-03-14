@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_BuildT.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_BuildA.$(Rev:r)
 
 pr: none
 
@@ -271,7 +271,7 @@ jobs:
     taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
     taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps: 
   - checkout: none
   - task: azure-deveops-ispw-operation-task@2
@@ -301,7 +301,7 @@ jobs:
     taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
     taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none  
 
