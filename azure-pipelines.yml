@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Build.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_BuildT.$(Rev:r)
 
 pr: none
 
@@ -124,10 +124,12 @@ jobs:
         Write-Host "##vso[task.setvariable variable=previousCommit;isoutput=true]$previousCommit"
         Write-Host "##vso[task.setvariable variable=gitLocalPath;isoutput=true]$gitLocalPath"
 
-  # Synchronize code for feature branch
+  # Synchronize code for 
+  # Feature Branch, if it's not the first build
+  # Release Branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or(and(eq(variables.codePipelineLevel, 'FEAT'),ne(variables['prepareSynch.revision'], '1')), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
@@ -203,7 +205,6 @@ jobs:
   #    codePage: '1047 - Latin 1 (Open Systems)'
   #    timeout: '0'
   #    branchMapping: $(branchMapping)
-    
 
 - job: checkParameters
   displayName: Check for Build Parameters
