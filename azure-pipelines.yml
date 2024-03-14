@@ -376,6 +376,14 @@ jobs:
           -loglevel INFO ^
           -data $(cliWorkspace)
 
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
+      searchFolder: './TTTUnit'      
+      testRunTitle: 'Build_$(Build.BuildNumber)'
+
   - task: PowerShell@2
     displayName: Set Code Coverage Parms
     inputs:
@@ -566,7 +574,7 @@ jobs:
   - sonar
   condition: and(succeeded('sonar'), eq(variables.mainframeBuild, 'true'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Branch.releaseTag'] ]
+    releaseTag: $[ dependencies.synchMainframeCode.outputs['prepareSynch.releaseTag'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
     mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
