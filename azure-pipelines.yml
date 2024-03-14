@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_TestBuild.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test2Build.$(Rev:r)
 
 pr: none
 
@@ -358,7 +358,7 @@ jobs:
           -data $(cliWorkspace)
 
   - task: PowerShell@2
-    displayName: Set Code COverage Parms
+    displayName: Set Code Coverage Parms
     inputs:
       targetType: 'inline'
       script: |
