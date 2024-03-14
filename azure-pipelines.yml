@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test5Build.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Build.$(Rev:r)
 
 pr: none
 
