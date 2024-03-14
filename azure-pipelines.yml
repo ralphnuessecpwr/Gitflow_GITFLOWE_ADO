@@ -558,7 +558,7 @@ jobs:
         Write-Host "Assignment  : $(assignmentId)"
 
         $releaseTag = "$(releaseTag)".Substring(1,8).Replace('.', '')
-        $releaseId  = "$(codePipelineAssignmentPrefix)$releaseTag"
+        $releaseId  = "$(codePipelineReleasePrefix)$releaseTag"
 
         $requestBody = '{
           "definitionId": "$(releaseDefinitionId)",
