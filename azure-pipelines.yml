@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_BuildA.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_BuildB.$(Rev:r)
 
 pr: none
 
@@ -129,7 +129,7 @@ jobs:
   # Release Branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or(and(eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1')), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
@@ -211,7 +211,7 @@ jobs:
   dependsOn: synchMainframeCode
   variables:
     revision: $[ dependencies.synchMainframeCode.outputs['prepareSynch.revision'] ]
-  condition: or(and(eq(variables.codePipelineLevel, 'FEAT'),(eq(variables.revision, '1')), eq(variables.codePipelineLevel, 'RLSE'))
+  condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
   steps:
   - checkout: none
   - task: PowerShell@2
