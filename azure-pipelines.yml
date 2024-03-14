@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test3Build.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test4Build.$(Rev:r)
 
 pr: none
 
@@ -79,7 +79,7 @@ jobs:
         
         $previousCommit             = ''
 
-        if ($gitBranch.ToLower().Contains("feature") -and $revision -ne 1) {
+        if ($gitBranch.ToLower().Contains("feature") -and $revision -ne "1") {
 
           $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
 
@@ -127,56 +127,63 @@ jobs:
   # Synchronize code for feature branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables.prepareSynch.revision, '1') ), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
       script: |
-        Write-Host 'Will synchronize Commits starting from' $(prepareSynch.previousCommit) 'and ending with' $(Build.SourceVersion)
-        Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $(branchCreationRule)
-        Write-Host
-        Write-Host "Parameters"
-        Write-Host
-        Write-Host "Target Path       : $(prepareSynch.targetPath)"
-        Write-Host "Config File       : $(codePipelineConfigYml)"
-        Write-Host "Stream            : $(codePipelineStream)"
-        Write-Host "App               : $(codePipelineApplication)"
-        Write-Host "SubApp            : $(codePipelineSubApplication)"
-        Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
-        Write-Host "Level             : $(codePipelineLevel)"
-        Write-Host "Git Repo          : $(Build.Repository.Uri).git"
-        Write-Host "Git Branch        : $(prepareSynch.gitBranch)"
-        Write-Host "Git From          : $(prepareSynch.previousCommit)"
-        Write-Host "Git To            : $(Build.SourceVersion)"
-        Write-Host
+        $revision = '$(prepareSynch.revision)'
 
+        if($(codePipelineLevel) -eq 'FEAT' -and $revision -eq '1') {
+          Write-Host "Skipping synchronization for 1 Build of the branch."
+        }
+        else{
 
-        cmd.exe /c $(cliPath)\IspwCLI.bat `
-          -operation syncGitToIspw `
-          -host $(hostName) `
-          -port $(hostHciPort) `
-          -id $(hostUser) `
-          -pass $(hostPassword) `
-          -protocol None `
-          -code $(hostCodePage) `
-          -timeout 0 `
-          -targetFolder $(prepareSynch.targetPath) `
-          -data $(cliWorkspace) `
-          -ispwServerConfig $(runtimeConfig) `
-          -ispwConfigPath $(codePipelineConfigYml) `
-          -ispwServerStream $(codePipelineStream) `
-          -ispwServerApp $(codePipelineApplication) `
-          -ispwServerSubAppl $(codePipelineSubApplication) `
-          -assignmentPrefix $(codePipelineAssignmentPrefix) `
-          -ispwCheckoutLevel $(codePipelineLevel) `
-          -ispwContainerCreation "$(branchCreationRule)" `
-          -ispwContainerDescription "$(containerDescription)" `
-          -gitRepoUrl $(Build.Repository.Uri).git `
-          -gitBranch $(prepareSynch.gitBranch) `
-          -gitFromHash $(prepareSynch.previousCommit) `
-          -gitCommit $(Build.SourceVersion) `
-          -gitLocalPath $(prepareSynch.gitLocalPath)
+          Write-Host 'Will synchronize Commits starting from' $(prepareSynch.previousCommit) 'and ending with' $(Build.SourceVersion)
+          Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $(branchCreationRule)
+          Write-Host
+          Write-Host "Parameters"
+          Write-Host
+          Write-Host "Target Path       : $(prepareSynch.targetPath)"
+          Write-Host "Config File       : $(codePipelineConfigYml)"
+          Write-Host "Stream            : $(codePipelineStream)"
+          Write-Host "App               : $(codePipelineApplication)"
+          Write-Host "SubApp            : $(codePipelineSubApplication)"
+          Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
+          Write-Host "Level             : $(codePipelineLevel)"
+          Write-Host "Git Repo          : $(Build.Repository.Uri).git"
+          Write-Host "Git Branch        : $(prepareSynch.gitBranch)"
+          Write-Host "Git From          : $(prepareSynch.previousCommit)"
+          Write-Host "Git To            : $(Build.SourceVersion)"
+          Write-Host
+          
+          cmd.exe /c $(cliPath)\IspwCLI.bat `
+            -operation syncGitToIspw `
+            -host $(hostName) `
+            -port $(hostHciPort) `
+            -id $(hostUser) `
+            -pass $(hostPassword) `
+            -protocol None `
+            -code $(hostCodePage) `
+            -timeout 0 `
+            -targetFolder $(prepareSynch.targetPath) `
+            -data $(cliWorkspace) `
+            -ispwServerConfig $(runtimeConfig) `
+            -ispwConfigPath $(codePipelineConfigYml) `
+            -ispwServerStream $(codePipelineStream) `
+            -ispwServerApp $(codePipelineApplication) `
+            -ispwServerSubAppl $(codePipelineSubApplication) `
+            -assignmentPrefix $(codePipelineAssignmentPrefix) `
+            -ispwCheckoutLevel $(codePipelineLevel) `
+            -ispwContainerCreation "$(branchCreationRule)" `
+            -ispwContainerDescription "$(containerDescription)" `
+            -gitRepoUrl $(Build.Repository.Uri).git `
+            -gitBranch $(prepareSynch.gitBranch) `
+            -gitFromHash $(prepareSynch.previousCommit) `
+            -gitCommit $(Build.SourceVersion) `
+            -gitLocalPath $(prepareSynch.gitLocalPath)
 
+        }
   #- task: azure-deveops-ispw-operation-task@2
   #  name: synchMainframeCode2Branch
   #  displayName: Synchronize branch to Mainframe
