@@ -134,10 +134,10 @@ jobs:
 
           if($tagList.Length -gt 1){            
             $previousTag      = $tagList[1].Trim()            
-            $previousCommit   = (git rev-list -1 $previousTag)
+            $previousCommit   = (git rev-list -1 $previousTag).Trim()
           }
           else {
-            $previousCommit   = '-1'
+            $previousCommit   = (git rev-list --max-parents=0 HEAD).Trim()
           }
         }        
         
@@ -548,13 +548,17 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        $restUri = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
+        $restUri = "https://vsrm.dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
                     
         $headers = @{}
         $headers.Add("Authorization", "$(azureToken)")
         $headers.Add("Content-Type", "application/json")
+        
+        Write-Host "Release Tag : $(releaseTag)"
+        Write-Host "Assignment  : $(assignmentId)"
 
-        $releaseId = "$(codePipelineApplication)" + $releaseTag.Substring(1,8).Replace('.', '')
+        $releaseTag = "$(releaseTag)".Substring(1,8).Replace('.', '')
+        $releaseId  = "$(codePipelineReleasePrefix)$releaseTag"
 
         $requestBody = '{
           "definitionId": "$(releaseDefinitionId)",
@@ -566,7 +570,7 @@ jobs:
               "value": "$(releaseTag)"
             },
             "releaseId": {
-              "value": "$(releaseId)"
+              "value": "'+$releaseId+'"
             }
           }
         }'
