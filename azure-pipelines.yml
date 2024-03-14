@@ -15,6 +15,8 @@ variables:
 - group: 'gitflow_GITFLOWE'
 - name: upperBranchName
   value: $[upper(variables['Build.SourceBranchName'])]
+- name: branchBuildNum
+  value: '$(Rev:r)'
 - name: branchMapping
   ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
     value: 'feature/** => FEAT,custom,PUSH TO FEATURE/$(upperBranchName)'
@@ -38,7 +40,7 @@ variables:
 
 jobs:
 - job: synchMainframeCode
-  condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), gt($(Rev:r), 1) ), eq(variables.codePipelineLevel, 'RLSE') )
+  condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables.branchBuildNum, 1) ), eq(variables.codePipelineLevel, 'RLSE') )
   displayName: Synch Mainframe Code
   steps:
   - checkout: self
