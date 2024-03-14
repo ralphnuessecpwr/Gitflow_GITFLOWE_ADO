@@ -129,7 +129,7 @@ jobs:
   # Release Branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or(and(eq(variables.codePipelineLevel, 'FEAT'),ne(variables['prepareSynch.revision'], '1')), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or(and(eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1')), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
@@ -209,7 +209,9 @@ jobs:
 - job: checkParameters
   displayName: Check for Build Parameters
   dependsOn: synchMainframeCode
-  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE'))
+  variables:
+    revision: $[ dependencies.synchMainframeCode.outputs['prepareSynch.revision'] ]
+  condition: or(and(eq(variables.codePipelineLevel, 'FEAT'),(eq(variables.revision, '1')), eq(variables.codePipelineLevel, 'RLSE'))
   steps:
   - checkout: none
   - task: PowerShell@2
@@ -221,7 +223,7 @@ jobs:
         if(-not (Test-Path -Path .\automaticBuildParams.txt -PathType Leaf)) {
 
           Write-Host "No Mainframe Build parameters were found. Likely, no MF components were modified. The build will continue and just execute a code scan."
-          Write-Host "##vso[task.complete result=Failed;]DONE"
+          Write-Host "##vso[task.setvariable variable=mainframeBuild;isoutput=true]false"
 
         }
         else {
@@ -258,16 +260,18 @@ jobs:
           Write-Host "##vso[task.setvariable variable=taskIds;isoutput=true]$taskParm"
           Write-Host "##vso[task.setvariable variable=taskLevel;isoutput=true]$taskLevel"
           Write-Host "##vso[task.setvariable variable=assignmentId;isoutput=true]$assignmentId"
+          Write-Host "##vso[task.setvariable variable=mainframeBuild;isoutput=true]true"
         }
 
 - job: buildMainframeCode
   displayName: Build and Deploy Mainframe Code
   dependsOn: checkParameters
-  condition: and(succeeded('checkParameters'), or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE')))
+  condition: eq(variables.mainframeBuild, 'true')
   variables:
     taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
     taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps: 
   - checkout: none
   - task: azure-deveops-ispw-operation-task@2
@@ -289,8 +293,15 @@ jobs:
 
 - job: runTests
   displayName: Execute Tests
-  dependsOn: buildMainframeCode
-  condition: and(succeeded('buildMainframeCode'), eq(variables.codePipelineLevel, 'FEAT'))
+  dependsOn: 
+  - checkParameters
+  - buildMainframeCode
+  condition: eq(variables.mainframeBuild, 'true')
+  variables:
+    taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
+    taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none  
 
@@ -553,10 +564,11 @@ jobs:
   - synchMainframeCode
   - checkParameters
   - sonar
-  condition: and(succeeded('sonar'), succeeded('checkParameters'), eq(variables.codePipelineLevel, 'RLSE'))
+  condition: and(succeeded('sonar'), eq(variables.mainframeBuild, 'true'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
     releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Branch.releaseTag'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none
   - task: PowerShell@2
