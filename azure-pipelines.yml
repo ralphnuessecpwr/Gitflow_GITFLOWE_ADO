@@ -1,4 +1,4 @@
-name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test2Build.$(Rev:r)
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Test3Build.$(Rev:r)
 
 pr: none
 
@@ -70,7 +70,6 @@ jobs:
         $revision= $buildNumber.Substring($buildNumber.LastIndexOf('.') + 1)
 
         write-host "Revision Number "$revision
-        "##vso[task.setvariable variable=revision;isoutput=true]$revision"
 
         $gitLocalPath               = '.\'
         $targetPath                 = '.\'
@@ -119,6 +118,7 @@ jobs:
 
         }
 
+        Write-Host "##vso[task.setvariable variable=revision;isoutput=true]$revision"
         Write-Host "##vso[task.setvariable variable=targetPath;isoutput=true]$targetPath"
         Write-Host "##vso[task.setvariable variable=gitBranch;isoutput=true]$gitBranch"
         Write-Host "##vso[task.setvariable variable=previousCommit;isoutput=true]$previousCommit"
