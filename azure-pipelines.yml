@@ -70,6 +70,7 @@ jobs:
         $revision= $buildNumber.Substring($buildNumber.LastIndexOf('.') + 1)
 
         write-host "Revision Number "$revision
+        "##vso[task.setvariable variable=revision;isoutput=true]$revision"
 
         $gitLocalPath               = '.\'
         $targetPath                 = '.\'
@@ -126,6 +127,7 @@ jobs:
   # Synchronize code for feature branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
+    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(prepareSynch.revision, '1') ), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
