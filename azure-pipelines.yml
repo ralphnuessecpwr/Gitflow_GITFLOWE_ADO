@@ -66,8 +66,10 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        write-host "Build Number"
-        Write-Host $(branchBuildNum)
+        $buildNumber = $Env:BUILD_BUILDNUMBER
+        $revision= $buildNumber.Substring($buildNumber.LastIndexOf('.') + 1)
+
+        write-host "Revision Number "$revision
 
         $gitLocalPath               = '.\'
         $targetPath                 = '.\'
@@ -77,7 +79,7 @@ jobs:
         
         $previousCommit             = ''
 
-        if ($gitBranch.ToLower().Contains("feature")) {
+        if ($gitBranch.ToLower().Contains("feature") -and $revision -ne 1) {
 
           $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
 
