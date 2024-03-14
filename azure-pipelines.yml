@@ -127,7 +127,7 @@ jobs:
   # Synchronize code for feature branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(prepareSynch.revision, '1') ), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables.prepareSynch.revision, '1') ), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
