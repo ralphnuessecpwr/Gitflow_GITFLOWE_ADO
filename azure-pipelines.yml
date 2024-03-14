@@ -566,7 +566,7 @@ jobs:
   - sonar
   condition: and(succeeded('sonar'), eq(variables.mainframeBuild, 'true'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Branch.releaseTag'] ]
+    releaseTag: $[ dependencies.synchMainframeCode.outputs['prepareSynch.releaseTag'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
     mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
