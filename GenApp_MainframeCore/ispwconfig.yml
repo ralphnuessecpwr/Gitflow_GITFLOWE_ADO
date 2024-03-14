@@ -1,4 +1,4 @@
-﻿!!com.compuware.ispw.wzzms.models.IspwRoot
+!!com.compuware.ispw.wzzms.models.IspwRoot
 ispwApplication:
   host: cwcc.bmc.com
   port: 16196
@@ -7,7 +7,7 @@ ispwApplication:
   application: GITFLOWE
   subAppl: GITFLOWE
   assignmentPrefix: GFLE
-  sandbox: N
+  sandbox: Y
   pathMappings:
   - path: "**/Sources/Progs"
     types:
