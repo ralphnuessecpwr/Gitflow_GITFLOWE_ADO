@@ -10,7 +10,7 @@
       *  CALCULATES COMMISIONS FOR SALES AND MANAGEMENT EMPLOYEE       *
       *  BASED ON MONTHLY SALES RATES                                  *
       *                                                                *
-      * DEMO 2024.03.28  - 16:33                                       *
+      * DEMO 2024.03.28  - 17:33                                       *
       *                                                                *
       ******************************************************************
        ENVIRONMENT DIVISION.
@@ -81,6 +81,7 @@
                IF EMP-TYPE EQUAL 'M'
                    PERFORM 2000-PROCESS-MANAGEMENT.
            GOBACK.
+      ***
       ***
       ***
       ***
