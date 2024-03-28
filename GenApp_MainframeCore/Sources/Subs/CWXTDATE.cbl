@@ -7,7 +7,7 @@
       *  THIS CALLED PROGRAM IS PART OF THE COBOL DEMO PROGRAM USED    *
       *  FOR XPEDITER/TSO TRAINING SESSIONS                            *
       *                                                                *
-      * DEMO 2023.05.17 - 13:25                                        *
+      * DEMO 2024.03.28  - 16:00                                       *
       *                                                                *      
       ******************************************************************
        ENVIRONMENT DIVISION.
