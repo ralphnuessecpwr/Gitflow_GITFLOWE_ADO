@@ -1,4 +1,4 @@
-arguments=--init-script C\:\\Users\\rnuesse\\AppData\\Roaming\\Code\\User\\globalStorage\\redhat.java\\1.25.1\\config_win\\org.eclipse.osgi\\55\\0\\.cp\\gradle\\init\\init.gradle --init-script C\:\\Users\\rnuesse\\AppData\\Roaming\\Code\\User\\globalStorage\\redhat.java\\1.25.1\\config_win\\org.eclipse.osgi\\55\\0\\.cp\\gradle\\protobuf\\init.gradle
+arguments=--init-script C\:\\Users\\rnuesse\\AppData\\Roaming\\Code\\User\\globalStorage\\redhat.java\\1.29.0\\config_win\\org.eclipse.osgi\\56\\0\\.cp\\gradle\\init\\init.gradle --init-script C\:\\Users\\rnuesse\\AppData\\Roaming\\Code\\User\\globalStorage\\redhat.java\\1.29.0\\config_win\\org.eclipse.osgi\\56\\0\\.cp\\gradle\\protobuf\\init.gradle
 auto.sync=false
 build.commands=org.eclipse.jdt.core.javabuilder
 build.scans.enabled=false
@@ -11,7 +11,7 @@ connection.project.dir=
 derived.resources=.gradle,build
 eclipse.preferences.version=1
 gradle.user.home=
-java.home=C\:/Program Files/Semeru/jre-8.0.352.8-openj9
+java.home=C\:/Program Files/Semeru/jre-11.0.17.8-openj9
 jvm.arguments=
 linked.resources=com.compuware.xatester.common.test-src,src,com.compuware.xatester.xaunit-src,com.compuware.xatester.xaunit.test-src
 natures=org.eclipse.jdt.core.javanature
