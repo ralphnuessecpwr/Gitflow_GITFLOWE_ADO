@@ -1,9 +1,12 @@
+name: $(Build.DefinitionName)_Branch_$(SourceBranchName)_Build.$(Rev:r)
+
 pr: none
 
 trigger:
-- development
 - feature/*
+- development
 - release/*
+- main
 
 pool:
   name: 'Default'
@@ -35,14 +38,15 @@ variables:
 
 jobs:
 - job: synchMainframeCode
-  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE'))
+  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
   displayName: Synch Mainframe Code
   steps:
   - checkout: self
     clean: true
     fetchDepth: 0
     fetchTags: true
-  # For the release branch change the sandbox flag from "Y" to "N"
+
+# For the release branch change the sandbox flag from "Y" to "N"
   - task: PowerShell@2
     condition: eq(variables.codePipelineLevel, 'RLSE')
     name: deactivateSandboxFlag
@@ -52,11 +56,139 @@ jobs:
       script: |
         $ispwConfigFilePath = '$(codePipelineConfigYml)'
         out-file -FilePath "$ispwConfigFilePath" -InputObject (Get-Content -Raw "$ispwConfigFilePath").Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
-  # Synchronize code for feature branch, using extension
+
+# Prepare Parameters for Synchronization, depending on branch
+  - task: PowerShell@2
+    name: prepareSynch
+    displayName: Prepare Synchronization
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      targetType: 'inline'
+      script: |
+        $buildNumber = $Env:BUILD_BUILDNUMBER
+        $revision= $buildNumber.Substring($buildNumber.LastIndexOf('.') + 1)
+
+        write-host "Revision Number "$revision
+
+        $gitLocalPath               = '.\'
+        $targetPath                 = '.\'
+        $gitFullBranch              = "$(Build.SourceBranch)"
+        $gitBranch                  = $gitFullBranch.substring($gitFullBranch.lastindexof('heads/') + 6)
+        $restUri                    = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
+        
+        $previousCommit             = ''
+
+        if ($gitBranch.ToLower().Contains("feature") -and $revision -ne "1") {
+
+          $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
+
+          if($response.StatusCode -eq 200) {
+
+              $content        = ConvertFrom-Json $response.Content
+              
+          }
+          else {
+              
+              Write-Host
+              Write-Host "Query failed. Response"
+              Write-Host $response
+
+              Exit 1
+
+          }
+          
+          $previousCommit   = $content.value[1].sourceVersion
+
+        }
+        else {
+
+          $tagList            = (git tag --sort=-refname).Split("`n")
+          $currentTag         = $tagList[0].Trim()
+
+          if($tagList.Length -gt 1){            
+            $previousTag      = $tagList[1].Trim()            
+            $previousCommit   = (git rev-list -1 $previousTag).Trim()
+          }
+          else {
+            $previousCommit   = (git rev-list --max-parents=0 HEAD).Trim()
+          }   
+          
+          Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
+
+        }
+
+        Write-Host "##vso[task.setvariable variable=revision;isoutput=true]$revision"
+        Write-Host "##vso[task.setvariable variable=targetPath;isoutput=true]$targetPath"
+        Write-Host "##vso[task.setvariable variable=gitBranch;isoutput=true]$gitBranch"
+        Write-Host "##vso[task.setvariable variable=previousCommit;isoutput=true]$previousCommit"
+        Write-Host "##vso[task.setvariable variable=gitLocalPath;isoutput=true]$gitLocalPath"
+
+  # Synchronize code for 
+  # Feature Branch, if it's not the first build
+  # Release Branch
+  - task: PowerShell@2
+    name: synchMainframeCode2Branch
+    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
+    displayName: Synchronize branch to Mainframe
+    inputs:
+      targetType: 'inline'
+      script: |
+        $revision = '$(prepareSynch.revision)'
+
+        if('$(codePipelineLevel)' -eq 'FEAT' -and $revision -eq '1') {
+          Write-Host "Skipping synchronization for 1 Build of the branch."
+        }
+        else{
+
+          Write-Host 'Will synchronize Commits starting from' $(prepareSynch.previousCommit) 'and ending with' $(Build.SourceVersion)
+          Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $(branchCreationRule)
+          Write-Host
+          Write-Host "Parameters"
+          Write-Host
+          Write-Host "Target Path       : $(prepareSynch.targetPath)"
+          Write-Host "Config File       : $(codePipelineConfigYml)"
+          Write-Host "Stream            : $(codePipelineStream)"
+          Write-Host "App               : $(codePipelineApplication)"
+          Write-Host "SubApp            : $(codePipelineSubApplication)"
+          Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
+          Write-Host "Level             : $(codePipelineLevel)"
+          Write-Host "Git Repo          : $(Build.Repository.Uri).git"
+          Write-Host "Git Branch        : $(prepareSynch.gitBranch)"
+          Write-Host "Git From          : $(prepareSynch.previousCommit)"
+          Write-Host "Git To            : $(Build.SourceVersion)"
+          Write-Host
+          
+          cmd.exe /c $(cliPath)\IspwCLI.bat `
+            -operation syncGitToIspw `
+            -host $(hostName) `
+            -port $(hostHciPort) `
+            -id $(hostUser) `
+            -pass $(hostPassword) `
+            -protocol None `
+            -code $(hostCodePage) `
+            -timeout 0 `
+            -targetFolder $(prepareSynch.targetPath) `
+            -data $(cliWorkspace) `
+            -ispwServerConfig $(runtimeConfig) `
+            -ispwConfigPath $(codePipelineConfigYml) `
+            -ispwServerStream $(codePipelineStream) `
+            -ispwServerApp $(codePipelineApplication) `
+            -ispwServerSubAppl $(codePipelineSubApplication) `
+            -assignmentPrefix $(codePipelineAssignmentPrefix) `
+            -ispwCheckoutLevel $(codePipelineLevel) `
+            -ispwContainerCreation "$(branchCreationRule)" `
+            -ispwContainerDescription "$(containerDescription)" `
+            -gitRepoUrl $(Build.Repository.Uri).git `
+            -gitBranch $(prepareSynch.gitBranch) `
+            -gitFromHash $(prepareSynch.previousCommit) `
+            -gitCommit $(Build.SourceVersion) `
+            -gitLocalPath $(prepareSynch.gitLocalPath)
+
+        }
   #- task: azure-deveops-ispw-operation-task@2
-  #  name: synchMainframeCode2Feat
-  #  displayName: Synchronize feature branch to Mainframe
-  #  condition: eq(variables.codePipelineLevel, 'FEAT')
+  #  name: synchMainframeCode2Branch
+  #  displayName: Synchronize branch to Mainframe
   #  inputs:
   #    connectionId: $(hostConnection)      
   #    operationType: 'ISPWSYNC'
@@ -73,124 +205,13 @@ jobs:
   #    codePage: '1047 - Latin 1 (Open Systems)'
   #    timeout: '0'
   #    branchMapping: $(branchMapping)
-  # Synchronize code for release branch      
-  - task: PowerShell@2
-    name: synchMainframeCode2Rlse
-    displayName: Synchronize branch to Mainframe
-  # deactivated condition, therefore the CLI will be used for FEAT and RLSE
-  # Once the extension code works properly, re-activate condition
-    #condition: eq(variables.codePipelineLevel, 'RLSE')
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      targetType: 'inline'
-      script: |
-        $gitLocalPath               = '.\'
-        $targetPath                 = '.\'
-        $gitFullBranch              = "$(Build.SourceBranch)"
-        $gitBranch                  = $gitFullBranch.substring($gitFullBranch.lastindexof('heads/') + 6)
-        $restUri                    = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
-        $ispwContainerCreationRule  = ''
-        $ispwConfigFilePath         = '"$(codePipelineConfigYml)"'
-        $currentCommit              = "$(Build.SourceVersion)"
-        $previousCommit             = ''
-        
-        Write-Host "Synchronizing Bran $gitBranch to the Mainframe"
-        Write-Host 
-        Write-Host "Querying for Execution Commits (current Run and previous Run)"
-        Write-Host "Using URI"
-        Write-Host $restUri
-
-        if ($gitBranch.ToLower().Contains("feature"))
-        {
-          $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
-
-          if($response.StatusCode -eq 200) {
-
-              $content        = ConvertFrom-Json $response.Content
-              
-          }
-          else{
-              
-              Write-Host
-              Write-Host "Query failed. Response"
-              Write-Host $response
-
-              Exit 1
-
-          }
-
-          if($content.value.Count -gt 0){
-            $previousCommit = $content.value[1].sourceVersion
-          }
-          else{
-            $previousCommit = '-1'          
-          }
-        }        
-        elseif ($gitBranch.ToLower().Contains("release"))
-        {
-          $tagList            = (git tag --sort=-refname).Split("`n")
-          $currentTag         = $tagList[0].Trim()
-
-          if($tagList.Length -gt 1){            
-            $previousTag      = $tagList[1].Trim()            
-            $previousCommit   = (git rev-list -1 $previousTag).Trim()
-          }
-          else {
-            $previousCommit   = (git rev-list --max-parents=0 HEAD).Trim()
-          }
-        }        
-        
-        Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
-
-        Write-Host 'Will synchronize Commits starting from' $previousCommit 'and ending with' $currentCommit
-        Write-Host 'Will map Git Branch' $gitBranch 'to ISPW Level $(codePipelineLevel), using Container Creation Rule' $ispwContainerCreationRule
-        Write-Host
-        Write-Host "Parameters"
-        Write-Host
-        Write-Host "Target Path       :" $targetPath
-        Write-Host "Config File       :" $ispwConfigFilePath
-        Write-Host "Stream            : $(codePipelineStream)"
-        Write-Host "App               : $(codePipelineApplication)"
-        Write-Host "SubApp            : $(codePipelineSubApplication)"
-        Write-Host "Assignment Prefix : $(codePipelineAssignmentPrefix)"
-        Write-Host "Level             : $(codePipelineLevel)"
-        Write-Host "Git Repo          : $(Build.Repository.Uri).git"
-        Write-Host "Git Branch        :" $gitBranch
-        Write-Host "Git From          :" $previousCommit
-        Write-Host "Git To            :" $currentCommit
-        Write-Host
-
-        cmd.exe /c $(cliPath)\IspwCLI.bat `
-          -operation syncGitToIspw `
-          -host $(hostName) `
-          -port $(hostHciPort) `
-          -id $(hostUser) `
-          -pass $(hostPassword) `
-          -protocol None `
-          -code $(hostCodePage) `
-          -timeout 0 `
-          -targetFolder $targetPath `
-          -data $(cliWorkspace) `
-          -ispwServerConfig $(runtimeConfig) `
-          -ispwConfigPath $ispwConfigFilePath `
-          -ispwServerStream $(codePipelineStream) `
-          -ispwServerApp $(codePipelineApplication) `
-          -ispwServerSubAppl $(codePipelineSubApplication) `
-          -assignmentPrefix $(codePipelineAssignmentPrefix) `
-          -ispwCheckoutLevel $(codePipelineLevel) `
-          -ispwContainerCreation "$(branchCreationRule)" `
-          -ispwContainerDescription "$(containerDescription)" `
-          -gitRepoUrl $(Build.Repository.Uri).git `
-          -gitBranch $gitBranch `
-          -gitFromHash $previousCommit `
-          -gitCommit $currentCommit `
-          -gitLocalPath $gitLocalPath     
 
 - job: checkParameters
   displayName: Check for Build Parameters
   dependsOn: synchMainframeCode
-  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE'))
+  variables:
+    revision: $[ dependencies.synchMainframeCode.outputs['prepareSynch.revision'] ]
+  condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
   steps:
   - checkout: none
   - task: PowerShell@2
@@ -202,7 +223,7 @@ jobs:
         if(-not (Test-Path -Path .\automaticBuildParams.txt -PathType Leaf)) {
 
           Write-Host "No Mainframe Build parameters were found. Likely, no MF components were modified. The build will continue and just execute a code scan."
-          Write-Host "##vso[task.complete result=Failed;]DONE"
+          Write-Host "##vso[task.setvariable variable=mainframeBuild;isoutput=true]false"
 
         }
         else {
@@ -239,16 +260,18 @@ jobs:
           Write-Host "##vso[task.setvariable variable=taskIds;isoutput=true]$taskParm"
           Write-Host "##vso[task.setvariable variable=taskLevel;isoutput=true]$taskLevel"
           Write-Host "##vso[task.setvariable variable=assignmentId;isoutput=true]$assignmentId"
+          Write-Host "##vso[task.setvariable variable=mainframeBuild;isoutput=true]true"
         }
 
 - job: buildMainframeCode
   displayName: Build and Deploy Mainframe Code
   dependsOn: checkParameters
-  condition: and(succeeded('checkParameters'), or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE')))
+  condition: eq(variables.mainframeBuild, 'true')
   variables:
     taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
     taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps: 
   - checkout: none
   - task: azure-deveops-ispw-operation-task@2
@@ -270,8 +293,15 @@ jobs:
 
 - job: runTests
   displayName: Execute Tests
-  dependsOn: buildMainframeCode
-  condition: and(succeeded('buildMainframeCode'), eq(variables.codePipelineLevel, 'FEAT'))
+  dependsOn: 
+  - checkParameters
+  - buildMainframeCode
+  condition: eq(variables.mainframeBuild, 'true')
+  variables:
+    taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
+    taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
+    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none  
 
@@ -346,8 +376,16 @@ jobs:
           -loglevel INFO ^
           -data $(cliWorkspace)
 
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
+      searchFolder: './TTTUnit'      
+      testRunTitle: 'Build_$(Build.BuildNumber)'
+
   - task: PowerShell@2
-    displayName: Set Code COverage Parms
+    displayName: Set Code Coverage Parms
     inputs:
       targetType: 'inline'
       script: |
@@ -534,10 +572,11 @@ jobs:
   - synchMainframeCode
   - checkParameters
   - sonar
-  condition: and(succeeded('sonar'), eq(variables.codePipelineLevel, 'RLSE'))
+  condition: and(succeeded('sonar'), eq(variables.mainframeBuild, 'true'), eq(variables.codePipelineLevel, 'RLSE'))
   variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['synchMainframeCode2Rlse.releaseTag'] ]
+    releaseTag: $[ dependencies.synchMainframeCode.outputs['prepareSynch.releaseTag'] ]
     assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
+    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none
   - task: PowerShell@2
