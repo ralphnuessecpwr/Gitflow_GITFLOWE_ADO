@@ -77,6 +77,9 @@ jobs:
         
         $previousCommit             = ''
 
+        Write-Host "Test"
+        Write-Host $gitFullBranch
+
         if ($gitBranch.ToLower().Contains("feature") -and $revision -ne "1") {
 
           $response = Invoke-WebRequest -Uri $restUri -Headers @{"Authorization" = "Bearer $env:SYSTEM_ACCESSTOKEN"}
@@ -101,7 +104,7 @@ jobs:
         }
         else {
 
-          $previousCommit = ""
+          $previousCommit = (git merge-base origin/development origin/$gitBranch)
 
         }
 
@@ -116,7 +119,7 @@ jobs:
   # Release Branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
