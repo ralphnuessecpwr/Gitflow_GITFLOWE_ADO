@@ -42,9 +42,7 @@ jobs:
   displayName: Synch Mainframe Code
   steps:
   - checkout: self
-    clean: true
     fetchDepth: 0
-    fetchTags: true
 
 # For the release branch change the sandbox flag from "Y" to "N"
   - task: PowerShell@2
@@ -75,7 +73,6 @@ jobs:
         $targetPath                 = '.\'
         $gitFullBranch              = "$(Build.SourceBranch)"
         $gitBranch                  = $gitFullBranch.substring($gitFullBranch.lastindexof('heads/') + 6)
-        $gitCompareBranch           = "development"
         $restUri                    = "https://dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/build/builds/?definitions=$(System.DefinitionId)&branchName=$(Build.SourceBranch)&`$top=5&queryOrder=queueTimeDescending&api-version=5.1"
         
         $previousCommit             = ''
@@ -104,7 +101,7 @@ jobs:
         }
         else {
 
-          $previousCommit = (git merge-base $gitCompareBranch $gitBranch)
+          $previousCommit = ""
 
         }
 
