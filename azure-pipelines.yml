@@ -269,7 +269,6 @@ jobs:
         runtimeConfiguration=$(runtimeConfig)
         assignmentId=$(assignmentId)
         level=$(taskLevel)
-        override=true
       buildAutomatically: false
       skipWaitingForSetCompletion: false
       showResponseBodyInConsole: true
