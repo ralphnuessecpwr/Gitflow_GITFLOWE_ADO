@@ -4,9 +4,6 @@ pr: none
 
 trigger:
 - feature/*
-- development
-- release/*
-- main
 
 pool:
   name: 'Default'
@@ -17,7 +14,7 @@ variables:
   value: $[upper(variables['Build.SourceBranchName'])]
 - name: branchMapping
   ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
-    value: 'feature/** => FEAT,custom,PUSH TO FEATURE/$(upperBranchName)'
+    value: 'feature/** => UNIT,custom,PUSH TO FEATURE/$(upperBranchName)'
   ${{ elseif contains(variables['Build.SourceBranch'], 'release')}}:
     value: 'release/** => RLSE,per-branch'
 - name: branchCreationRule
@@ -32,28 +29,17 @@ variables:
     value: "PUSH TO RLSE/$(upperBranchName)"
 - name: codePipelineLevel
   ${{ if contains(variables['Build.SourceBranch'], 'feature')}}:
-    value: 'FEAT'
+    value: 'UNIT'
   ${{ if contains(variables['Build.SourceBranch'], 'release')}}:
     value: 'RLSE'
 
 jobs:
 - job: synchMainframeCode
-  condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
+  condition: or(eq(variables.codePipelineLevel, 'UNIT'), eq(variables.codePipelineLevel, 'RLSE') )
   displayName: Synch Mainframe Code
   steps:
   - checkout: self
     fetchDepth: 0
-
-# For the release branch change the sandbox flag from "Y" to "N"
-  - task: PowerShell@2
-    condition: eq(variables.codePipelineLevel, 'RLSE')
-    name: deactivateSandboxFlag
-    displayName: Deactivate Sandbox Flag
-    inputs:
-      targetType: 'inline'
-      script: |
-        $ispwConfigFilePath = '$(codePipelineConfigYml)'
-        out-file -FilePath "$ispwConfigFilePath" -InputObject (Get-Content -Raw "$ispwConfigFilePath").Replace('sandbox: Y', 'sandbox: N') -Encoding utf8
 
 # Prepare Parameters for Synchronization, depending on branch
   - task: PowerShell@2
@@ -116,7 +102,7 @@ jobs:
   # Release Branch
   - task: PowerShell@2
     name: synchMainframeCode2Branch
-    condition: or(eq(variables.codePipelineLevel, 'FEAT'), eq(variables.codePipelineLevel, 'RLSE') )
+    condition: or(eq(variables.codePipelineLevel, 'UNIT'), eq(variables.codePipelineLevel, 'RLSE') )
     displayName: Synchronize branch to Mainframe
     inputs:
       targetType: 'inline'
@@ -192,7 +178,7 @@ jobs:
   dependsOn: synchMainframeCode
   variables:
     revision: $[ dependencies.synchMainframeCode.outputs['prepareSynch.revision'] ]
-  condition: or( and( eq(variables.codePipelineLevel, 'FEAT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
+  condition: or( and( eq(variables.codePipelineLevel, 'UNIT'), ne(variables['prepareSynch.revision'], '1') ), eq(variables.codePipelineLevel, 'RLSE') )
   steps:
   - checkout: none
   - task: PowerShell@2
@@ -271,337 +257,17 @@ jobs:
         level=$(taskLevel)
       skipWaitingForSetCompletion: false
       showResponseBodyInConsole: true  
-
-- job: runTests
-  displayName: Execute Tests
-  dependsOn: 
-  - checkParameters
-  - buildMainframeCode
-  condition: eq(variables.mainframeBuild, 'true')
-  variables:
-    taskIds: $[ dependencies.checkParameters.outputs['buildParameters.taskIds'] ]
-    taskLevel: $[ dependencies.checkParameters.outputs['buildParameters.taskLevel'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
-    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
-  steps:
-  - checkout: none  
-
-  # - task: BMCTTAutoRun@1
-  #   displayName: Run Unit Tests
-  #   inputs:
-  #     HCIConnection: $(hostConnection)
-  #     UserID: $(hostUser)
-  #     Password: $(hostPassword)
-  #     TestLocationPath: '$(testRootFolder)/$(testUnitFolder)'
-  #     CLIInstallationPath: $(cliPath)
-  #     Configuration: 'LocalTTTConf'
-  #     LocalTTTConfiguration: '$(testRootFolder)/$(testConfigurationFolder)'
-
-  - task: CmdLine@2
-    displayName: Run Unit Tests
-    inputs:
-      script: |
-        echo Executing Unit Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
-        
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testUnitFolder) ^
-          -pnf changedPrograms.json ^
-          -ccrepo $(codeCoverageRepo) ^
-          -ccsys $(codeCoverageSystem) ^
-          -cctid $(codeCoverageTestid) ^
-          -ccclear true ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
-
-  - task: CmdLine@2
-    displayName: Run Integration Tests
-    inputs:
-      script: |
-        echo Executing Integration Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
-        
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testIntegrationFolder) ^
-          -pnf changedPrograms.json ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
-
-  - task: PublishTestResults@2
-    displayName: Publish Test Results
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
-      searchFolder: './TTTUnit'      
-      testRunTitle: 'Build_$(Build.BuildNumber)'
-
-  - task: PowerShell@2
-    displayName: Set Code Coverage Parms
-    inputs:
-      targetType: 'inline'
-      script: |
-        [System.Collections.ArrayList]$parmList= @()
-
-        $parmList.Add("cc.repos=$(codeCoverageRepo)")
-        $parmList.Add("cc.system=$(codeCoverageSystem)")
-        $parmList.Add("cc.test=$(codeCoverageTestid)")
-        $parmList.Add("cc.sources=$(codeCoverageSourcesFolder)")
-
-        out-file -FilePath "./ccanalysis.properties" -InputObject $parmList -Encoding utf8
-
-  - task: bmc-compuware-xpediter-code-coverage-plugin@1
-    displayName: Download Code Coverage Data
+  - task: azure-deveops-ispw-operation-task@2
     inputs:
       connectionId: $(hostConnection)
-      userId: $(hostUser)
-      credentialId: $(hostPassword)
-      targetFolder: "$(Agent.BuildDirectory)/s"
-      windowsTopazWorkbenchCliHome: '$(cliPath)'
-      linuxTopazWorkbenchCliHome: '/u/bmc'
-      m_analysisPropertiesPath: './ccanalysis.properties'
-      # m_analysisProperties: | 
-      #   cc.repos=$(codeCoverageRepo)
-      #   cc.system=$(codeCoverageSystem)
-      #   cc.test=$(codeCoverageTestid)
-      #   cc.sources=$(codeCoverageSourcesFolder)
-
-#  - task: CmdLine@2
-#    displayName: Download Code Coverage Data
-#    inputs:
-#      script: |
-#        echo Downloading Code Coverage Results using Parameters
-#        echo Host IP        : $(hostName)
-#        echo Port           : $(hostHciPort)
-#        echo User ID        : $(hostUser)
-#        echo Codepage       : $(hostCodePage)
-#        echo CC Repository  : $(codeCoverageRepo)
-#        echo CC System      : $(codeCoverageSystem)
-#        echo CC Test ID     : $(codeCoverageTestid)
-#        echo Sources Folder : $(codeCoverageSourcesFolder)
-#
-#        $(cliPath)\CodeCoverageCLI.bat ^
-#          -host $(hostName) ^
-#          -port $(hostHciPort) ^
-#          -id $(hostUser) ^
-#          -pass $(hostPassword) ^
-#          -code $(hostCodePage) ^
-#          -targetFolder $(Agent.BuildDirectory)/s ^
-#          -data $(cliWorkspace) ^
-#          --cc.repos $(codeCoverageRepo) ^
-#          --cc.system $(codeCoverageSystem) ^
-#          --cc.test $(codeCoverageTestid) ^
-#          --cc.sources $(codeCoverageSourcesFolder) ^
-#          -timeout 0
-
-- job: sonar
-  displayName: Run Sonar Scan
-  dependsOn: runTests
-  condition: always()
-  steps:
-  - checkout: none  
-  - task: PowerShell@2
-    name: collectOutputs
-    displayName: Collect Output Files for Sonar
-    inputs:
-      targetType: 'inline'
-      script: |
-        $testScenariosParm          = ""
-        $testResultsParm            = ""
-        $codeCoverageParm           = ""
-
-        $testUnitResultsPath        = "$(testOutputFolder)\$(testUnitFolder).cli.suite.sonar.xml"
-        $testIntegrationResultsPath = "$(testOutputFolder)\$(testIntegrationFolder).cli.suite.sonar.xml"
-        $codeCoverageResultsPath    = "$(codeCoverageFolder)\CodeCoverage.xml"
-
-        if(Test-Path -Path $testUnitResultsPath -PathType Leaf) {
-
-          $testScenariosParm  = "sonar.tests=$(testRootFolder)"
-          $testResultsParm    = "sonar.testExecutionReportPaths=$testUnitResultsPath"
-
-        }
-
-        if(Test-Path -Path $testIntegrationResultsPath -PathType Leaf) {
-
-          if($testResultsParm -eq "") {
-
-            $testScenariosParm  = "sonar.tests=$(testRootFolder)"
-            $testResultsParm    = "sonar.testExecutionReportPaths=$testIntegrationResultsPath"
-
-          }
-          else
-          {
-
-            $testResultsParm    = "$testResultsParm,$testIntegrationResultsPath"
-          
-          }
-        }
-
-        if(Test-Path -Path $codeCoverageResultsPath -PathType Leaf) {
-          
-          $codeCoverageParm = "sonar.coverageReportPaths=$codeCoverageResultsPath"
-        
-        }
-
-        Write-Host "Sonar Parms"
-        Write-Host "Scenario: $testScenariosParm"
-        Write-Host "Results : $testResultsParm"
-        Write-Host "CoCo    : $codeCoverageParm"
-
-        Write-Host "##vso[task.setvariable variable=testScenariosParm;isoutput=true]$testScenariosParm"
-        Write-Host "##vso[task.setvariable variable=testResultsParm;isoutput=true]$testResultsParm"
-        Write-Host "##vso[task.setvariable variable=codeCoverageParm;isoutput=true]$codeCoverageParm"
-
-  - task: SonarQubePrepare@5
-    displayName: Prepare Analysis
-    inputs:
-      SonarQube: 'Sonar'
-      scannerMode: 'CLI'
-      configMode: 'manual'
-      cliProjectKey: 'GITFLOW_GITFLOWE_Azure'
-      cliProjectName: 'GITFLOW_GITFLOWE_Azure'
-      cliSources: './GenApp_MainframeCore/Sources'
-      extraProperties: |
-        sonar.branch.name=$(Build.SourceBranchName)
-        sonar.cobol.copy.directories=./GenApp_MainframeCore/Sources
-        sonar.cobol.file.suffixes=cbl,testsuite,testscenario,stub,result,scenario,context
-        sonar.cobol.copy.suffixes=cpy
-        $(collectOutputs.testScenariosParm)
-        $(collectOutputs.testResultsParm)
-        $(collectOutputs.codeCoverageParm)
-        sonar.ws.timeout=480
-        sonar.sourceEncoding=UTF-8
-
-  - task: SonarQubeAnalyze@5
-    displayName: Execute Analysis
-
-  - task: SonarQubePublish@5
-    displayName: Wait for Analysis to finish
-    inputs:
-      pollingTimeoutSec: '300'  
-
-  - task: PowerShell@2
-    displayName: Check Sonar Quality Gate
-    inputs:
-      targetType: 'inline'
-      script: |
-        #$fullBranch = "$(Build.SourceBranch)"
-        #$gitBranch  = $fullBranch.substring($fullBranch.lastindexof('heads/') + 6)
-        $gitBranch = "$(Build.SourceBranchName)"
-
-        Write-Host "Retrieve Sonar Quality Gate status for"
-        Write-Host "Project: $(sonarProjectName)"
-        Write-Host "Branch : $gitBranch"
-
-        $uri = "$(sonarServer)/api/qualitygates/project_status?projectKey=$(sonarProjectName)&branch=$gitBranch"
-        $headers = @{}
-        $headers.Add("Authorization", '"$(sonarToken)"')
-        $headers.Add("Content-Type", "application/json")
-
-        Write-Host
-        Write-Host "Checking Sonar Quality Gate Status for Project "$(sonarProjectName)"."
-        Write-Host "URL"
-        Write-Host $uri
-        $response = Invoke-RestMethod -Uri $uri -method GET -headers $headers
-        
-        $status = $response.projectStatus.status
-        
-        Write-Host
-        Write-Host "Checked Sonar Quality Gate status for Project "$(sonarProjectName)"."
-        Write-Host "Status is "$status"."
-        
-        if($status -ne "OK"){
-            $LASTEXITCODE = 1
-        }
-        else
-        {
-            $LASTEXITCODE = 0
-        }
-
-- job: release
-  displayName: Start Release
-  dependsOn: 
-  - synchMainframeCode
-  - checkParameters
-  - sonar
-  condition: and(succeeded('sonar'), eq(variables.mainframeBuild, 'true'), eq(variables.codePipelineLevel, 'RLSE'))
-  variables:
-    releaseTag: $[ dependencies.synchMainframeCode.outputs['prepareSynch.releaseTag'] ]
-    assignmentId: $[ dependencies.checkParameters.outputs['buildParameters.assignmentId'] ]
-    mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
-  steps:
-  - checkout: none
-  - task: PowerShell@2
-    name: triggerRelease
-    displayName: Trigger Release
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      targetType: 'inline'
-      script: |
-        $restUri = "https://vsrm.dev.azure.com/$(organization)/$(System.TeamProjectId)/_apis/release/releases?api-version=5.1"
-                    
-        $headers = @{}
-        $headers.Add("Authorization", "$(azureToken)")
-        $headers.Add("Content-Type", "application/json")
-        
-        Write-Host "Release Tag : $(releaseTag)"
-        Write-Host "Assignment  : $(assignmentId)"
-
-        $releaseTag = "$(releaseTag)".Substring(1,8).Replace('.', '')
-        $releaseId  = "$(codePipelineReleasePrefix)$releaseTag"
-
-        $requestBody = '{
-          "definitionId": "$(releaseDefinitionId)",
-          "variables": {
-            "assignmentId": {
-              "value": "$(assignmentId)"
-            },
-            "releaseTag": {
-              "value": "$(releaseTag)"
-            },
-            "releaseId": {
-              "value": "'+$releaseId+'"
-            }
-          }
-        }'
-
-        Write-Host "Triggering Azure Release using REST API:"
-        Write-Host "URL"
-        Write-Host $restUri
-        Write-Host "Body"
-        Write-Host $requestBody
-
-        $response = Invoke-RestMethod -Uri $restUri -method POST -headers $headers -body $requestBody
-
-        Write-Host "Response"
-        Write-Host $response
+      operationType: 'CES'
+      cesUrl: $(cesUrl)
+      cesSecretToken: '$(cesToken)'
+      action: 'PromoteAssignment'
+      request: |
+        runtimeConfiguration=$(runtimeConfig)
+        assignmentId=$(assignmentId)
+        level=$(taskLevel)
+      buildAutomatically: false
+      skipWaitingForSetCompletion: false
+      showResponseBodyInConsole: true
