@@ -258,6 +258,7 @@ jobs:
       skipWaitingForSetCompletion: false
       showResponseBodyInConsole: true  
   - task: azure-deveops-ispw-operation-task@2
+    displayName: Promote Code
     inputs:
       connectionId: $(hostConnection)
       operationType: 'CES'
@@ -268,6 +269,7 @@ jobs:
         runtimeConfiguration=$(runtimeConfig)
         assignmentId=$(assignmentId)
         level=$(taskLevel)
+        override=true
       buildAutomatically: false
       skipWaitingForSetCompletion: false
       showResponseBodyInConsole: true
