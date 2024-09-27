@@ -306,7 +306,7 @@ jobs:
         echo User ID          : $(hostUser)
         echo CES URI          : http://cwcc.bmc.com:2020
         echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
+        echo Test Folder      : $(testRootFolder)/$(testUnitFolder)
         
         $(cliPath)\TotalTestFTCLI.bat ^
           -e $(testEnvironmentId) ^
@@ -338,7 +338,7 @@ jobs:
         echo User ID          : $(hostUser)
         echo CES URI          : http://cwcc.bmc.com:2020
         echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/testUnitFolder
+        echo Test Folder      : $(testRootFolder)/$(testIntegrationFolder)
         
         $(cliPath)\TotalTestFTCLI.bat ^
           -e $(testEnvironmentId) ^
