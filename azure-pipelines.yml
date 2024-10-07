@@ -101,7 +101,18 @@ jobs:
         }
         else {
 
-          $previousCommit = "d6b6d29c79b73d0cb3ecb6b3631557cb5b4a9955" 
+          $tagList            = (git tag --sort=-refname).Split("`n")
+          $currentTag         = $tagList[0].Trim()
+
+          if($tagList.Length -gt 1){            
+            $previousTag      = $tagList[1].Trim()            
+            $previousCommit   = (git rev-list -1 $previousTag).Trim()
+          }
+          else {
+            $previousCommit   = (git rev-list --max-parents=0 HEAD).Trim()
+          }   
+          
+          Write-Host "##vso[task.setvariable variable=releaseTag;isoutput=true]$currentTag"
 
         }
 
