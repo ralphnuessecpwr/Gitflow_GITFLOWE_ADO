@@ -285,6 +285,28 @@ jobs:
     mainframeBuild: $[ dependencies.checkParameters.outputs['buildParameters.mainframeBuild'] ]
   steps:
   - checkout: none  
+  
+  - task: CmdLine@2
+    displayName: Run Unit Tests
+    inputs:
+      script: |
+        echo Executing Unit Tests using Parameters
+        echo Environment      : $(testEnvironmentId)
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwcc.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/$(testUnitFolder)
+
+  - task: CmdLine@2
+    displayName: Run Integration Tests
+    inputs:
+      script: |
+        echo Executing Integration Tests using Parameters
+        echo Environment      : $(testEnvironmentId)
+        echo User ID          : $(hostUser)
+        echo CES URI          : http://cwcc.bmc.com:2020
+        echo CES User ID      : $(hostUser)
+        echo Test Folder      : $(testRootFolder)/$(testIntegrationFolder)
 
   # - task: BMCTTAutoRun@1
   #   displayName: Run Unit Tests
@@ -297,73 +319,73 @@ jobs:
   #     Configuration: 'LocalTTTConf'
   #     LocalTTTConfiguration: '$(testRootFolder)/$(testConfigurationFolder)'
 
-  - task: CmdLine@2
-    displayName: Run Unit Tests
-    inputs:
-      script: |
-        echo Executing Unit Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/$(testUnitFolder)
+  # - task: CmdLine@2
+  #   displayName: Run Unit Tests
+  #   inputs:
+  #     script: |
+  #       echo Executing Unit Tests using Parameters
+  #       echo Environment      : $(testEnvironmentId)
+  #       echo User ID          : $(hostUser)
+  #       echo CES URI          : http://cwcc.bmc.com:2020
+  #       echo CES User ID      : $(hostUser)
+  #       echo Test Folder      : $(testRootFolder)/$(testUnitFolder)
         
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testUnitFolder) ^
-          -pnf changedPrograms.json ^
-          -ccrepo $(codeCoverageRepo) ^
-          -ccsys $(codeCoverageSystem) ^
-          -cctid $(codeCoverageTestid) ^
-          -ccclear true ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
+  #       $(cliPath)\TotalTestFTCLI.bat ^
+  #         -e $(testEnvironmentId) ^
+  #         -u $(hostUser) ^
+  #         -p $(hostPassword) ^
+  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+  #         -cesu $(hostUser) ^
+  #         -cesp $(hostPassword) ^
+  #         -f $(testRootFolder)/$(testUnitFolder) ^
+  #         -pnf changedPrograms.json ^
+  #         -ccrepo $(codeCoverageRepo) ^
+  #         -ccsys $(codeCoverageSystem) ^
+  #         -cctid $(codeCoverageTestid) ^
+  #         -ccclear true ^
+  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+  #         -R ^
+  #         -G ^
+  #         -v 6 ^
+  #         -l jenkins ^
+  #         -loglevel INFO ^
+  #         -data $(cliWorkspace)
 
-  - task: CmdLine@2
-    displayName: Run Integration Tests
-    inputs:
-      script: |
-        echo Executing Integration Tests using Parameters
-        echo Environment      : $(testEnvironmentId)
-        echo User ID          : $(hostUser)
-        echo CES URI          : http://cwcc.bmc.com:2020
-        echo CES User ID      : $(hostUser)
-        echo Test Folder      : $(testRootFolder)/$(testIntegrationFolder)
+  # - task: CmdLine@2
+  #   displayName: Run Integration Tests
+  #   inputs:
+  #     script: |
+  #       echo Executing Integration Tests using Parameters
+  #       echo Environment      : $(testEnvironmentId)
+  #       echo User ID          : $(hostUser)
+  #       echo CES URI          : http://cwcc.bmc.com:2020
+  #       echo CES User ID      : $(hostUser)
+  #       echo Test Folder      : $(testRootFolder)/$(testIntegrationFolder)
         
-        $(cliPath)\TotalTestFTCLI.bat ^
-          -e $(testEnvironmentId) ^
-          -u $(hostUser) ^
-          -p $(hostPassword) ^
-          -s http://cwcc.bmc.com:2020/totaltestapi/ ^
-          -cesu $(hostUser) ^
-          -cesp $(hostPassword) ^
-          -f $(testRootFolder)/$(testIntegrationFolder) ^
-          -pnf changedPrograms.json ^
-          -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
-          -R ^
-          -G ^
-          -v 6 ^
-          -l jenkins ^
-          -loglevel INFO ^
-          -data $(cliWorkspace)
+  #       $(cliPath)\TotalTestFTCLI.bat ^
+  #         -e $(testEnvironmentId) ^
+  #         -u $(hostUser) ^
+  #         -p $(hostPassword) ^
+  #         -s http://cwcc.bmc.com:2020/totaltestapi/ ^
+  #         -cesu $(hostUser) ^
+  #         -cesp $(hostPassword) ^
+  #         -f $(testRootFolder)/$(testIntegrationFolder) ^
+  #         -pnf changedPrograms.json ^
+  #         -ctxvars '"load_lib=SALESSUP.GITFLOWE.FEAT.LOAD"' ^
+  #         -R ^
+  #         -G ^
+  #         -v 6 ^
+  #         -l jenkins ^
+  #         -loglevel INFO ^
+  #         -data $(cliWorkspace)
 
-  - task: PublishTestResults@2
-    displayName: Publish Test Results
-    inputs:
-      testResultsFormat: 'JUnit'
-      testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
-      searchFolder: './TTTUnit'      
-      testRunTitle: 'Build_$(Build.BuildNumber)'
+  # - task: PublishTestResults@2
+  #   displayName: Publish Test Results
+  #   inputs:
+  #     testResultsFormat: 'JUnit'
+  #     testResultsFiles: '**/$(testUnitFolder).*.junit.xml'
+  #     searchFolder: './TTTUnit'      
+  #     testRunTitle: 'Build_$(Build.BuildNumber)'
 
   - task: PowerShell@2
     displayName: Set Code Coverage Parms
