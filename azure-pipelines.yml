@@ -101,7 +101,7 @@ jobs:
         }
         else {
 
-          $previousCommit = (git merge-base origin/development origin/$gitBranch)
+          $previousCommit = "d6b6d29c79b73d0cb3ecb6b3631557cb5b4a9955" 
 
         }
 
@@ -110,7 +110,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=gitBranch;isoutput=true]$gitBranch"
         Write-Host "##vso[task.setvariable variable=previousCommit;isoutput=true]$previousCommit"
         Write-Host "##vso[task.setvariable variable=gitLocalPath;isoutput=true]$gitLocalPath"
-
+  # $previousCommit = (git merge-base origin/development origin/$gitBranch)
   # Synchronize code for 
   # Feature Branch, if it's not the first build
   # Release Branch
