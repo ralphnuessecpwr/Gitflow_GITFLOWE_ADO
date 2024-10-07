@@ -14,7 +14,7 @@
       *                                                                *
       *  RUN JCL     - STORED IN XPEDITER/TSO SAMPLIB (CWXTJCLC)       *
       *                                                                *
-      * DEMO 2024.07.24 - 16:56                                        *
+      * TEST 2024.10.07  - 16:10                                       *
       *                                                                *      
       ******************************************************************
        ENVIRONMENT DIVISION.
